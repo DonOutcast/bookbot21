@@ -5,8 +5,15 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher.filters import Text
 from bookbot21.src.databases import sql_database
 from bookbot21.src.config import ADM_PASSWORD, STUDENT_PASSWORD, INTENSIVIST_PASSWORD
+from bookbot21.src.databases import sql_database
+
+user_db = sql_database.DatabaseBot("data_bot.db")
+user_db.sql_create_users()
+user_db.sql_create_booking()
+user_db.sql_create_objects()
 
 class AdmRoot(StatesGroup):
+    id = State()
     name_for_object = State()
     type_for_object = State()
     description = State()
@@ -16,13 +23,20 @@ class AdmRoot(StatesGroup):
     photo = State()
 
 
+
+
 # @dp.message_handler(commands=["add"], state=None)
 async def cmd_add(message: types.Message):
-    await message.answer("Введите название объекта")
     await AdmRoot.first()
 
 
-@dp.message_handler(state=AdmRoot.name_for_object)
+async def adm_answer_0(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['id'] = message.from_user.id
+        await message.answer("Введите название объекта")
+        await AdmRoot.next()
+
+# @dp.message_handler(state=AdmRoot.name_for_object)
 async def adm_answer_1(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['name_for_object'] = message.text
@@ -30,7 +44,7 @@ async def adm_answer_1(message: types.Message, state: FSMContext):
         await message.answer("Введите тип объекта!")
 
 
-@dp.message_handler(state=AdmRoot.type_for_object)
+# @dp.message_handler(state=AdmRoot.type_for_object)
 async def adm_answer_2(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['type_for_object'] = message.text
@@ -38,14 +52,14 @@ async def adm_answer_2(message: types.Message, state: FSMContext):
         await message.answer("Введите описание!")
 
 
-@dp.message_handler(state=AdmRoot.description)
+# @dp.message_handler(state=AdmRoot.description)
 async def adm_answer_3(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['description'] = message.text
         await AdmRoot.next()
         await message.answer("Введите тип  кампус!")
 
-@dp.message_handler(state=AdmRoot.campus_name)
+# @dp.message_handler(state=AdmRoot.campus_name)
 async def adm_answer_4(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['campus_name'] = message.text
@@ -53,7 +67,7 @@ async def adm_answer_4(message: types.Message, state: FSMContext):
         await message.answer("Введите этаж!")
 
 
-@dp.message_handler(state=AdmRoot.floor)
+# @dp.message_handler(state=AdmRoot.floor)
 async def adm_answer_5(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['floor'] = message.text
@@ -61,7 +75,7 @@ async def adm_answer_5(message: types.Message, state: FSMContext):
         await message.answer("Введите номер кабинета !")
 
 
-@dp.message_handler(state=AdmRoot.number_of_room)
+# @dp.message_handler(state=AdmRoot.number_of_room)
 async def adm_answer_6(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['number_of_room'] = message.text
@@ -69,9 +83,22 @@ async def adm_answer_6(message: types.Message, state: FSMContext):
         await message.answer("Загрузите фото!")
 
 
-@dp.message_handler(state=AdmRoot.photo)
-async def adm_answer_7(message: types.Messagem, state: FSMContext):
+# @dp.message_handler(state=AdmRoot.photo)
+async def adm_answer_7(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        data['photo'] = message.text
+        data['photo'] = message.photo[0].file_id
+        await user_db.sql_add_objects(state)
+        await user_db.sql_output(message)
         await message.answer("Вы успешно добавили!!!")
-        state.finish()
+        await state.finish()
+
+def register_handlers_adm(dp : Dispatcher):
+    dp.register_message_handler(cmd_add, commands=['add'], state=None)
+    dp.register_message_handler(adm_answer_0, state=AdmRoot.id)
+    dp.register_message_handler(adm_answer_1, state=AdmRoot.name_for_object)
+    dp.register_message_handler(adm_answer_2, state=AdmRoot.type_for_object)
+    dp.register_message_handler(adm_answer_3, state=AdmRoot.description)
+    dp.register_message_handler(adm_answer_4, state=AdmRoot.campus_name)
+    dp.register_message_handler(adm_answer_5, state=AdmRoot.floor)
+    dp.register_message_handler(adm_answer_6, state=AdmRoot.number_of_room)
+    dp.register_message_handler(adm_answer_7, content_types=['photo'], state=AdmRoot.photo)

@@ -1,6 +1,9 @@
-from aiogram import Bot, Dispatcher
+from aiogram import Bot, Dispatcher, types
 import config
+from aiogram.contrib.fsm_storage.memory import MemoryStorage # Позваляет хранить данные в оперативное памяти
+# Для созранения ответтов от пользователя
+storage = MemoryStorage()
 
 # Инициализируем бота
-bot = Bot(token=config.API_TOKEN)
-dp = Dispatcher(bot)
+bot = Bot(token=config.API_TOKEN, parse_mode=types.ParseMode.HTML)
+dp = Dispatcher(bot, storage=storage)

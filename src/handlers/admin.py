@@ -1,16 +1,12 @@
 from aiogram import types, Dispatcher
-from bookbot21.src.create_bot import dp, bot
+from src.create_bot import dp, bot
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher.filters import Text
-from bookbot21.src.databases import sql_database
-from bookbot21.src.config import ADM_PASSWORD, STUDENT_PASSWORD, INTENSIVIST_PASSWORD
-from bookbot21.src.databases import sql_database
+from src.databases import sql_database
+from src.config import ADM_PASSWORD, STUDENT_PASSWORD, INTENSIVIST_PASSWORD
+from src.databases import sql_database
 
-user_db = sql_database.DatabaseBot("data_bot.db")
-user_db.sql_create_users()
-user_db.sql_create_booking()
-user_db.sql_create_objects()
 
 class AdmRoot(StatesGroup):
     id = State()
@@ -23,6 +19,10 @@ class AdmRoot(StatesGroup):
     photo = State()
 
 
+user_db = sql_database.DatabaseBot("data_bot.db")
+user_db.sql_create_users()
+user_db.sql_create_booking()
+user_db.sql_create_objects()
 
 
 # @dp.message_handler(commands=["add"], state=None)
@@ -87,10 +87,10 @@ async def adm_answer_6(message: types.Message, state: FSMContext):
 async def adm_answer_7(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['photo'] = message.photo[0].file_id
-        await user_db.sql_add_objects(state)
-        await user_db.sql_output(message)
-        await message.answer("Вы успешно добавили!!!")
-        await state.finish()
+    await user_db.sql_add_objects(state)
+    await user_db.sql_output(message)
+    await message.answer("Вы успешно добавили!!!")
+    await state.finish()
 
 def register_handlers_adm(dp : Dispatcher):
     dp.register_message_handler(cmd_add, commands=['add'], state=None)

@@ -1,5 +1,5 @@
 import sqlite3 as sq
-from bookbot21.src.create_bot import bot
+from src.create_bot import bot
 
 
 class DatabaseBot:
@@ -26,12 +26,31 @@ class DatabaseBot:
         self.cur.execute("""CREATE TABLE IF NOT EXISTS objects(id INTEGER PRIMARY KEY , name VARCHAR(30), type VARCHAR(20), description VARCHAR(50), campus VARCHAR(20), floor INTEGER, number_of_the_room INTEGER, image TEXT)""")
         self.base.commit()
 
+    async def sql_add_users(self, state):
+        async with state.proxy() as data:
+            self.cur.execute('INSERT INTO users VALUES(?, ?, ?, ?);', (tuple(data.values())))
+            self.base.commit()
+
+    async def sql_output_all_users(self):
+        return self.cur.execute("SELECT * FROM users").fetchall()
+
     async def sql_add_objects(self, state):
         async with state.proxy() as data:
-            print(data)
             self.cur.execute('INSERT INTO objects VALUES(?, ?, ?, ?, ?, ?, ?, ?);', (tuple(data.values())))
             self.base.commit()
 
     async def sql_output(self, message):
         for ret in self.cur.execute("SELECT * FROM objects").fetchall():
             await bot.send_photo(message.from_user.id, ret[7], f'{ret[0]}\n {ret[1]}\n {ret[2]}\n {ret[3]}\n {ret[4]}\n {ret[5]}\n {ret[6]}')
+
+    async def sql_booking(self, state):
+        async with state.proxy() as data:
+            ret = self.cur.execute('''  SELECT *
+                                        FROM users
+                                        JOIN objects
+                                        On objects.campus=users.campus
+                                        WHERE objects.type=? and objects.name=?''', (data[0], data[1])
+                                   ).fetchall()
+            print(ret)
+            # self.cur.execute('INSERT INTO objects VALUES(?, ?, ?, ?);', (tuple(data.values())))
+            self.base.commit()

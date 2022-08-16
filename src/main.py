@@ -1,12 +1,16 @@
 from aiogram.utils import executor
 from create_bot import dp
-from handlers import admin, system_commands
+from handlers import admin, system_commands, intensivist, student
+from databases import sql_database
 
 
 async def on_starttup(_):
     print("Бот запущен")
 
+
+system_commands.register_handlers_system(dp)
+a = sql_database.DatabaseBot("biil.db")
+a.sql_start()
+
 if __name__ == "__main__":
-    admin.start()
-    system_commands.cmd_start()
     executor.start_polling(dp, skip_updates=True, on_startup=on_starttup)

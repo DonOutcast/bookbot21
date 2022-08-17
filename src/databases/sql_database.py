@@ -11,22 +11,45 @@ class DatabaseBot:
     def sql_create_users(self):
         if self.base:
             print("Data base connected OK!")
-            self.cur.execute("""CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY, login VARCHAR(20), role VARCHAR(20), campus Varchar(20))""")
+            self.cur.execute(
+                """CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY,            
+                                                    login VARCHAR(20),
+                                                    role VARCHAR(20),
+                                                    campus Varchar(20)
+                                                    )"""
+            )
             self.base.commit()
 
     def sql_create_booking(self):
         if self.base:
             print("Data base connected OK!")
-        self.cur.execute("""CREATE TABLE IF NOT EXISTS booking(start_time DATE, end_time DATE, status INTEGER, user_id INTEGER, object_id INTEGER)""")
-        self.base.commit()
+            self.cur.execute(
+                """CREATE TABLE IF NOT EXISTS booking (start_time DATE,
+                                                        end_time DATE,
+                                                        status INTEGER,
+                                                        user_id INTEGER,
+                                                        object_id INTEGER
+                                                        )"""
+            )
+            self.base.commit()
 
     def sql_create_objects(self):
         if self.base:
             print("Data base connected OK!")
-        self.cur.execute("""CREATE TABLE IF NOT EXISTS objects(id INTEGER PRIMARY KEY , name VARCHAR(30), type VARCHAR(20), description VARCHAR(50), campus VARCHAR(20), floor INTEGER, number_of_the_room INTEGER, image TEXT)""")
-        self.base.commit()
+            self.cur.execute(
+                """CREATE TABLE IF NOT EXISTS objects (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                                        name VARCHAR(30),
+                                                        type VARCHAR(20),
+                                                        description VARCHAR(50),
+                                                        campus VARCHAR(20),
+                                                        floor INTEGER,
+                                                        number_of_the_room INTEGER,
+                                                        image TEXT
+                                                        )"""
+            )
+            self.base.commit()
 
-    async def sql_add_users(self, state):
+    async def sql_add_users(self, state: list) -> int:
         async with state.proxy() as data:
             self.cur.execute('INSERT INTO users VALUES(?, ?, ?, ?);', (tuple(data.values())))
             self.base.commit()
@@ -36,21 +59,28 @@ class DatabaseBot:
 
     async def sql_add_objects(self, state):
         async with state.proxy() as data:
-            self.cur.execute('INSERT INTO objects VALUES(?, ?, ?, ?, ?, ?, ?, ?);', (tuple(data.values())))
+            print(tuple(data.values()))
+            self.cur.execute('''INSERT INTO objects (name, type, description, campus, floor, number_of_the_room, image)
+                                VALUES(?, ?, ?, ?, ?, ?, ?);''', (tuple(data.values())))
             self.base.commit()
 
     async def sql_output(self, message):
         for ret in self.cur.execute("SELECT * FROM objects").fetchall():
-            await bot.send_photo(message.from_user.id, ret[7], f'{ret[0]}\n {ret[1]}\n {ret[2]}\n {ret[3]}\n {ret[4]}\n {ret[5]}\n {ret[6]}')
+            await bot.send_photo(message.from_user.id, ret[7],
+                                 f'{ret[0]}\n {ret[1]}\n {ret[2]}\n {ret[3]}\n {ret[4]}\n {ret[5]}\n {ret[6]}')
 
     async def sql_booking(self, state):
         async with state.proxy() as data:
-            ret = self.cur.execute('''  SELECT *
-                                        FROM users
-                                        JOIN objects
+            data = tuple(data.values())
+            ret = self.cur.execute('''  SELECT objects.id
+                                        FROM objects
+                                        JOIN users
                                         On objects.campus=users.campus
-                                        WHERE objects.type=? and objects.name=?''', (data[0], data[1])
+                                        WHERE objects.type=? and objects.name=?''', (data[1], data[2])
                                    ).fetchall()
-            print(ret)
-            # self.cur.execute('INSERT INTO objects VALUES(?, ?, ?, ?);', (tuple(data.values())))
+            self.cur.execute('INSERT INTO booking VALUES(?, ?, ?, ?, ?);', (data[3], data[4], 1, data[0], ret[0][0]))
             self.base.commit()
+
+    async def check_registration(self, user_id) -> bool:
+        return self.cur.execute("SELECT id FROM users WHERE id=?", (user_id,)).fetchone() is not None
+

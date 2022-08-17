@@ -17,16 +17,16 @@ class Student(StatesGroup):
 
 
 # @dp.message_hadler(commands=['/booking'], state=None)
-async def cmd_booking(message: types.Message):
+async def cmd_booking(message: types.Message, state: FSMContext):
     await Student.first()
-
-
-# @dp.message_handlers(state=Student.user_id)
-async def log_user_answer_1(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['user_id'] = message.from_user.id
     await Student.next()
     await message.answer("Выберите тип объекта")
+
+# # @dp.message_handlers(state=Student.user_id)
+# async def log_user_answer_1(message: types.Message, state: FSMContext):
+
 
 
 # @dp.message_handlers(state=Student.type_of_object)
@@ -64,7 +64,7 @@ async def log_user_answer_5(message: types.Message, state: FSMContext):
 
 def register_handlers_student(dp: Dispatcher):
     dp.register_message_handler(cmd_booking, commands=['booking'], state=None)
-    dp.register_message_handler(log_user_answer_1, state=Student.user_id)
+    # dp.register_message_handler(log_user_answer_1, state=Student.user_id)
     dp.register_message_handler(log_user_answer_2, state=Student.type_of_object)
     dp.register_message_handler(log_user_answer_3, state=Student.name_of_object)
     dp.register_message_handler(log_user_answer_4, state=Student.start_time)

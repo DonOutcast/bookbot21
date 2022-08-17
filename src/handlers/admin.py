@@ -89,7 +89,7 @@ async def adm_answer_7(message: types.Message, state: FSMContext):
 
 
 def register_handlers_adm(dp : Dispatcher):
-    dp.register_message_handler(cmd_add, commands=['add'], state=None)
+    dp.register_message_handler(cmd_add, lambda message: 'Добавление 👨🏻‍💻' in message.text, state=None)
     dp.register_message_handler(adm_answer_1, state=AdmRoot.name_for_object)
     dp.register_message_handler(adm_answer_2, state=AdmRoot.type_for_object)
     dp.register_message_handler(adm_answer_3, state=AdmRoot.description)

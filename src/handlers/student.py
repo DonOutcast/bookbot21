@@ -83,13 +83,18 @@ async def log_user_answer_4(message: types.Message, state: FSMContext):
 async def log_user_answer_5(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['end_time'] = message.text
-    await user_db.sql_booking(state)
+    query = await user_db.sql_booking(state, message)
     await state.finish()
-    await message.answer("Переговорка забронирована")
+    if query:
+        login = await user_db.sql_get_login(message.from_user.id)
+        await message.answer(f"Вы {login[0]} успешно забранировали!")
+        await user_db.sql_my_booking(message, False)
+    else:
+        await bot.send_message(message.from_user.id, text="Ощибка бронирования")
 
 
 def register_handlers_student(dp: Dispatcher):
-    dp.register_message_handler(cmd_booking, commands=['booking'], state=None)
+    dp.register_message_handler(cmd_booking, lambda message: 'Бронирование ✅' in message.text, state=None)
     dp.register_message_handler(log_user_answer_1, state=Student.description)
     dp.register_message_handler(log_user_answer_2, state=Student.type_of_object)
     dp.register_message_handler(log_user_answer_date, state=Student.user_date)

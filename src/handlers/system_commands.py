@@ -6,6 +6,7 @@ from aiogram.dispatcher.filters import Text
 from src.databases import sql_database
 from src.config import ADM_PASSWORD, STUDENT_PASSWORD, INTENSIVIST_PASSWORD
 from src.handlers.admin import user_db
+from src.keyboards.system_kb import keyboards_menu
 
 count = 0
 
@@ -124,7 +125,8 @@ async def cmd_double(message: types.Message):
 
 # @dp.message_handler(commands=["start"])
 async def cmd_start(message: types.Message):
-    await bot.send_message(message.from_user.id, "Добро пожаловать!\nЭтот бот в разработке")
+
+    await bot.send_message(message.from_user.id, "Добро пожаловать!\nЭтот бот в разработке", reply_markup=keyboards_menu)
     await message.delete()
 
 
@@ -149,13 +151,22 @@ async def cmd_show(message: types.Message):
 
 # @dp.message_handler(commands=['my'])
 async def cmd_my(message: types.Message):
-    read = await user_db.sql_my_booking(message.from_user.id)
-    await message.answer(*read)
+    await user_db.sql_my_booking(message)
+
+
+# @dp.message_handler(lambda message: "Помощь 🆘" in message.text)
+async def cmd_help(message: types.Message):
+    await message.answer(f"Дорогой друг это бот для бронирования /start")
+
+
+# @dp.message_handler(lambda message: "Информация ⚠" in message.text)
+async def cmd_information(message: types.Message):
+    await message.answer("Ну что я могу сказать")
 
 
 def register_handlers_system(dp : Dispatcher):
     dp.register_message_handler(cmd_start, commands=["start"])
-    dp.register_message_handler(cmd_reg, commands=["reg"], state=None)
+    dp.register_message_handler(cmd_reg, lambda message: "Регистрация 🔐" in message.text, state=None)
     dp.register_message_handler(cmd_cancel_registration, state="*", commands=['отмена'])
     dp.register_message_handler(cmd_cancel_registration, Text(equals="отмена", ignore_case=True), state="*")
     # dp.register_message_handler(user_answer_0, state=Registration.user_id)
@@ -164,5 +175,7 @@ def register_handlers_system(dp : Dispatcher):
     dp.register_message_handler(check_password, state=Registration.check_password)
     dp.register_message_handler(user_answer_3, state=Registration.campus_name)
     dp.register_message_handler(cmd_show, commands=["show"])
-    dp.register_message_handler(cmd_my, commands=['my'])
+    dp.register_message_handler(cmd_my, lambda message: "Мои брони 📝" in message.text)
     dp.register_message_handler(cmd_double, commands=['double'])
+    dp.register_message_handler(cmd_help, lambda message: "Помощь 🆘" in message.text)
+    dp.register_message_handler(cmd_information, lambda message: "Информация ⚠" in message.text)

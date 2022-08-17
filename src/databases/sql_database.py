@@ -74,19 +74,25 @@ class DatabaseBot:
     #         await bot.send_photo(message.from_user.id, ret[7],
     #                              f'{ret[0]}\n {ret[1]}\n {ret[2]}\n {ret[3]}\n {ret[4]}\n {ret[5]}\n {ret[6]}')
 
-    async def sql_my_booking(self, user_id):
-        ret = self.cur.execute('''  SELECT booking.description, objects.type, objects.name, objects.campus, objects.floor, objects.number_of_the_room, booking.date, booking.start_time, booking.end_time
+    async def sql_my_booking(self, message, all=True):
+        lst = self.cur.execute('''  SELECT booking.description, objects.type, objects.name, objects.campus, objects.floor, objects.number_of_the_room, booking.date, booking.start_time, booking.end_time, booking.description, objects.image
                                     FROM objects
                                     JOIN booking
                                     On objects.id=booking.object_id
-                                    WHERE booking.user_id=?''', (user_id,)
+                                    WHERE booking.user_id=?''', (message.from_user.id,)
                                ).fetchall()
-        return ret
+        if all:
+            for ret in iter(lst):
+                await bot.send_photo(message.from_user.id, ret[-1], f'Мероприятие: {ret[-2]}\n\tНазвание объекта: {ret[2]}\n\tТип объекта: {ret[1]}\n\tКампус: {ret[3]}\n\tЭтаж: {ret[4]}\n\tНомер комнаты: {ret[5]}\n\tВремя брнирования: {ret[6]} {ret[7]}-{ret[8]}\n')
+        else:
+            ret = lst[-1]
+            await bot.send_photo(message.from_user.id, ret[-1],
+                                 f'Мероприятие: {ret[-2]}\n\tНазвание объекта: {ret[2]}\n\tТип объекта: {ret[1]}\n\tКампус: {ret[3]}\n\tЭтаж: {ret[4]}\n\tНомер комнаты: {ret[5]}\n\tВремя брнирования: {ret[6]} {ret[7]}-{ret[8]}\n')
 
-    async def sql_check_booking(self, date):
+    async def sql_check_booking(self, date, object_id):
         ret = self.cur.execute('''  SELECT booking.start_time, booking.end_time
                                     FROM booking
-                                    WHERE booking.date=? AND status=1''', (date,)
+                                    WHERE booking.date=? AND status=1 AND object_id=?''', (date, object_id,)
                                ).fetchall()
         return ret
 
@@ -103,7 +109,7 @@ class DatabaseBot:
                                ).fetchone()
         return ret
 
-    async def sql_booking(self, state):
+    async def sql_booking(self, state, message) -> bool:
         async with state.proxy() as data:
             data = tuple(data.values())
             print(data)
@@ -117,9 +123,11 @@ class DatabaseBot:
             if ret is not None:
                 self.cur.execute('INSERT INTO booking ( start_time, end_time ,status, description, user_id, object_id, date ) VALUES(?, ?, ?, ?, ?, ?, ?);', (data[-2], data[-1], 1, data[1], data[0], ret[0], data[-3]))
                 self.base.commit()
-            else:
-                print("Ошибка бронирования")
+                return True
+            return False
 
     async def check_registration(self, user_id) -> bool:
         return self.cur.execute("SELECT id FROM users WHERE id=?", (user_id,)).fetchone() is not None
 
+    async def sql_get_login(self, user_id) -> list:
+        return self.cur.execute("SELECT login FROM users WHERE id=(?)", (user_id, )).fetchone()

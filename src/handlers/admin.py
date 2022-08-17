@@ -6,6 +6,7 @@ from aiogram.dispatcher.filters import Text
 from src.databases import sql_database
 from src.config import ADM_PASSWORD, STUDENT_PASSWORD, INTENSIVIST_PASSWORD
 from src.databases import sql_database
+from src.keyboards.inline_kb import city_markup, objects_markup
 
 
 class AdmRoot(StatesGroup):
@@ -35,15 +36,17 @@ async def adm_answer_1(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['name_for_object'] = message.text
         await AdmRoot.next()
-        await message.answer("Введите тип объекта!")
+        await message.answer("Введите тип объекта!", reply_markup=objects_markup)
 
 
-# @dp.message_handler(state=AdmRoot.type_for_object)
-async def adm_answer_2(message: types.Message, state: FSMContext):
+# @dp.callback_query_handler(Text(startswith='object_'), state=AdmRoot.type_for_object)
+async def adm_answer_2(callback: types.CallbackQuery, state: FSMContext):
+    object = callback.data.split('_')[1]
     async with state.proxy() as data:
-        data['type_for_object'] = message.text
+        data['type_for_object'] = object
         await AdmRoot.next()
-        await message.answer("Введите описание!")
+        await callback.answer()
+        await callback.message.answer("Введите описание!")
 
 
 # @dp.message_handler(state=AdmRoot.description)
@@ -51,15 +54,17 @@ async def adm_answer_3(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['description'] = message.text
         await AdmRoot.next()
-        await message.answer("Введите кампус!")
+        await message.answer("Введите кампус!", reply_markup=city_markup)
 
 
-# @dp.message_handler(state=AdmRoot.campus_name)
-async def adm_answer_4(message: types.Message, state: FSMContext):
+# @dp.callback_handler(state=AdmRoot.campus_name)
+async def adm_answer_4(callback: types.CallbackQuery, state: FSMContext):
+    city = callback.data.split('_')[1]
     async with state.proxy() as data:
-        data['campus_name'] = message.text
+        data['campus_name'] = city
         await AdmRoot.next()
-        await message.answer("Введите этаж!")
+        await callback.answer()
+        await callback.message.answer("Введите этаж!")
 
 
 # @dp.message_handler(state=AdmRoot.floor)
@@ -91,9 +96,9 @@ async def adm_answer_7(message: types.Message, state: FSMContext):
 def register_handlers_adm(dp : Dispatcher):
     dp.register_message_handler(cmd_add, lambda message: 'Добавление 👨🏻‍💻' in message.text, state=None)
     dp.register_message_handler(adm_answer_1, state=AdmRoot.name_for_object)
-    dp.register_message_handler(adm_answer_2, state=AdmRoot.type_for_object)
+    dp.register_callback_query_handler(adm_answer_2, Text(startswith='object_'), state=AdmRoot.type_for_object)
     dp.register_message_handler(adm_answer_3, state=AdmRoot.description)
-    dp.register_message_handler(adm_answer_4, state=AdmRoot.campus_name)
+    dp.register_callback_query_handler(adm_answer_4, Text(startswith='city_'), state=AdmRoot.campus_name)
     dp.register_message_handler(adm_answer_5, state=AdmRoot.floor)
     dp.register_message_handler(adm_answer_6, state=AdmRoot.number_of_room)
     dp.register_message_handler(adm_answer_7, content_types=['photo'], state=AdmRoot.photo)

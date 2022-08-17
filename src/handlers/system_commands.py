@@ -7,6 +7,7 @@ from src.databases import sql_database
 from src.config import ADM_PASSWORD, STUDENT_PASSWORD, INTENSIVIST_PASSWORD
 from src.handlers.admin import user_db
 from src.keyboards.system_kb import keyboards_menu
+from src.keyboards.inline_kb import city_markup, users_markup
 
 count = 0
 
@@ -64,17 +65,19 @@ async def user_answer_1(message: types.Message, state: FSMContext):
         data['user_name'] = message.text
 
         await Registration.next()
-        await message.answer("Кто вы по жизни!")
+        await message.answer("Кто вы по жизни!", reply_markup=users_markup)
 
 
 # Ловим второй ответ от птльзователя
-# @dp.message_handler(state=Registration.user_role)
-async def user_answer_2(message: types.Message, state: FSMContext):
+# @dp.callback_query_handler(Text(startswith="user_"), state=Registration.user_role)
+async def user_answer_2(callback: types.CallbackQuery, state: FSMContext):
+    name = callback.data.split("_")[1]
     async with state.proxy() as data:
-        data['user_role'] = message.text
-        await Registration.next()
-        await message.answer("Ведите свой уникальный токен?")
+        data['user_role'] = name
 
+        await Registration.next()
+        await callback.message.answer("Ведите свой уникальный токен?")
+        await callback.answer(f"Ваша роль {name}", show_alert=True)
 
 # @dp.message_handlers(state=Registration.check_password)
 async def check_password(message: types.Message, state: FSMContext):
@@ -86,15 +89,15 @@ async def check_password(message: types.Message, state: FSMContext):
     if pasword == ADM_PASSWORD and data['user_role'] == 'adm':
         await Registration.next()
         count = 0
-        await message.answer("Из какого вы кампуса")
+        await message.answer("Из какого вы кампуса", reply_markup=city_markup)
     elif pasword == STUDENT_PASSWORD and data['user_role'] == 'student':
         await Registration.next()
         count = 0
-        await message.answer("Из какого вы кампуса")
+        await message.answer("Из какого вы кампуса", reply_markup=city_markup)
     elif pasword == INTENSIVIST_PASSWORD and data['user_role'] == 'intensivist':
         await Registration.next()
         count = 0
-        await message.answer("Из какого вы кампуса")
+        await message.answer("Из какого вы кампуса", reply_markup=city_markup)
     else:
         await message.answer("Неверный токен!!!")
         await message.answer("Попробуйте еще раз")
@@ -105,15 +108,16 @@ async def check_password(message: types.Message, state: FSMContext):
 
 
 # Ловим тертий ответ от пользователя
-# @dp.message_handler(state=Registration.campuse_name)
-async def user_answer_3(message: types.Message, state: FSMContext):
+# @dp.callback_query_handler(Text(startswith="city_"), state=Registration.campus_name)
+async def user_answer_3(callback: types.CallbackQuery, state: FSMContext):
+    city = callback.data.split('_')[1]
     async with state.proxy() as data:
-        data['campus_name'] = message.text
+        data['campus_name'] = city
         # p = await state.get_data()
         # await message.answer(data)
         # await cmd_task()
     await user_db.sql_add_users(state)
-    await message.answer("Вы успешно зарегестрировались")
+    await callback.message.answer("Вы успешно зарегестрировались")
     await state.finish()
 
 
@@ -171,9 +175,9 @@ def register_handlers_system(dp : Dispatcher):
     dp.register_message_handler(cmd_cancel_registration, Text(equals="отмена", ignore_case=True), state="*")
     # dp.register_message_handler(user_answer_0, state=Registration.user_id)
     dp.register_message_handler(user_answer_1, state=Registration.user_name)
-    dp.register_message_handler(user_answer_2, state=Registration.user_role)
+    dp.register_callback_query_handler(user_answer_2, Text(startswith="user_"), state=Registration.user_role)
     dp.register_message_handler(check_password, state=Registration.check_password)
-    dp.register_message_handler(user_answer_3, state=Registration.campus_name)
+    dp.register_callback_query_handler(user_answer_3, Text(startswith="city_"), state=Registration.campus_name)
     dp.register_message_handler(cmd_show, commands=["show"])
     dp.register_message_handler(cmd_my, lambda message: "Мои брони 📝" in message.text)
     dp.register_message_handler(cmd_double, commands=['double'])

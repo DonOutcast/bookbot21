@@ -1,4 +1,6 @@
 import sqlite3 as sq
+import time
+
 from src.create_bot import bot
 
 
@@ -25,8 +27,9 @@ class DatabaseBot:
             print("Data base connected OK!")
             self.cur.execute(
                 """CREATE TABLE IF NOT EXISTS booking ( id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                                        start_time DATE,
-                                                        end_time DATE,
+                                                        date DATE,
+                                                        start_time VARCHAR(10) ,
+                                                        end_time VARCHAR(10),
                                                         status INTEGER,
                                                         description VARCHAR(50),
                                                         user_id INTEGER,
@@ -65,18 +68,25 @@ class DatabaseBot:
             self.cur.execute('''INSERT INTO objects (name, type, description, campus, floor, number_of_the_room, image)
                                 VALUES(?, ?, ?, ?, ?, ?, ?);''', (tuple(data.values())))
             self.base.commit()
-    #
+
     # async def sql_output(self, message):
     #     for ret in self.cur.execute("SELECT * FROM objects").fetchall():
     #         await bot.send_photo(message.from_user.id, ret[7],
     #                              f'{ret[0]}\n {ret[1]}\n {ret[2]}\n {ret[3]}\n {ret[4]}\n {ret[5]}\n {ret[6]}')
 
     async def sql_my_booking(self, user_id):
-        ret = self.cur.execute('''  SELECT booking.description, objects.type, objects.name, objects.campus, objects.floor, objects.number_of_the_room, booking.start_time, booking.end_time
+        ret = self.cur.execute('''  SELECT booking.description, objects.type, objects.name, objects.campus, objects.floor, objects.number_of_the_room, booking.date, booking.start_time, booking.end_time
                                     FROM objects
                                     JOIN booking
                                     On objects.id=booking.object_id
                                     WHERE booking.user_id=?''', (user_id,)
+                               ).fetchall()
+        return ret
+
+    async def sql_check_booking(self, date):
+        ret = self.cur.execute('''  SELECT booking.start_time, booking.end_time
+                                    FROM booking
+                                    WHERE booking.date=? AND status=1''', (date,)
                                ).fetchall()
         return ret
 
@@ -86,6 +96,12 @@ class DatabaseBot:
                             WHERE id=?''', (0, booking_id))
         self.base.commit()
 
+    async def sql_check_rule(self, user_id):
+        ret = self.cur.execute('''SELECT role
+                                            FROM users
+                                            WHERE id=?''', (user_id, )
+                               ).fetchone()
+        return ret
 
     async def sql_booking(self, state):
         async with state.proxy() as data:
@@ -99,7 +115,7 @@ class DatabaseBot:
                                         LIMIT 1''', (data[2], data[3])
                                    ).fetchone()
             if ret is not None:
-                self.cur.execute('INSERT INTO booking ( start_time, end_time ,status, description, user_id, object_id ) VALUES(?, ?, ?, ?, ?, ?);', (data[-2], data[-1], 1, data[1], data[0], ret[0]))
+                self.cur.execute('INSERT INTO booking ( start_time, end_time ,status, description, user_id, object_id, date ) VALUES(?, ?, ?, ?, ?, ?, ?);', (data[-2], data[-1], 1, data[1], data[0], ret[0], data[-3]))
                 self.base.commit()
             else:
                 print("Ошибка бронирования")

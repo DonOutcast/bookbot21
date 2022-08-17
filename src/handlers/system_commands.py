@@ -18,6 +18,9 @@ class Registration(StatesGroup):
     campus_name = State()
 
 
+
+
+
 # @dp.message_handler(commands=["reg"], state=None)
 async def cmd_reg(message: types.Message, state: FSMContext):
     """
@@ -34,6 +37,16 @@ async def cmd_reg(message: types.Message, state: FSMContext):
         await bot.send_message(message.from_user.id, "Введите логин для авторизации!")
     else:
         await message.answer("Вы уже зарегистрированы!")
+
+
+# @dp.message_handler(state="*", commands=["отмена"])
+# @dp.message_handler(Text(equals='отмена', ignore_case=True), state="*")
+async def cmd_cancel_registration(message: types.Message, state: FSMContext):
+    # current_state = await state.get_state()
+    # if current_state is None:
+    #     return
+    await state.finish()
+    await message.reply('OK')
 
 
 # @dp.message_handlers(state=Registration.user_id)
@@ -103,6 +116,10 @@ async def user_answer_3(message: types.Message, state: FSMContext):
     await state.finish()
 
 
+# @dp.message_handler(commands=["/double"])
+async def cmd_double(message: types.Message):
+    answer = await user_db.sql_check_booking("2022")
+    await message.answer(answer)
 
 
 # @dp.message_handler(commands=["start"])
@@ -129,6 +146,7 @@ async def cmd_show(message: types.Message):
     read = await user_db.sql_output_all_users()
     await message.answer(*read)
 
+
 # @dp.message_handler(commands=['my'])
 async def cmd_my(message: types.Message):
     read = await user_db.sql_my_booking(message.from_user.id)
@@ -138,6 +156,8 @@ async def cmd_my(message: types.Message):
 def register_handlers_system(dp : Dispatcher):
     dp.register_message_handler(cmd_start, commands=["start"])
     dp.register_message_handler(cmd_reg, commands=["reg"], state=None)
+    dp.register_message_handler(cmd_cancel_registration, state="*", commands=['отмена'])
+    dp.register_message_handler(cmd_cancel_registration, Text(equals="отмена", ignore_case=True), state="*")
     # dp.register_message_handler(user_answer_0, state=Registration.user_id)
     dp.register_message_handler(user_answer_1, state=Registration.user_name)
     dp.register_message_handler(user_answer_2, state=Registration.user_role)
@@ -145,3 +165,4 @@ def register_handlers_system(dp : Dispatcher):
     dp.register_message_handler(user_answer_3, state=Registration.campus_name)
     dp.register_message_handler(cmd_show, commands=["show"])
     dp.register_message_handler(cmd_my, commands=['my'])
+    dp.register_message_handler(cmd_double, commands=['double'])

@@ -18,7 +18,7 @@ class AdmRoot(StatesGroup):
     photo = State()
 
 
-user_db = sql_database.DatabaseBot("data_bot.db") #test.db
+user_db = sql_database.DatabaseBot("test.db") #test.db
 user_db.sql_create_users()
 user_db.sql_create_booking()
 user_db.sql_create_objects()

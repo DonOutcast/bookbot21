@@ -7,6 +7,8 @@ from src.databases import sql_database
 from src.config import ADM_PASSWORD, STUDENT_PASSWORD, INTENSIVIST_PASSWORD
 from src.handlers.admin import user_db
 
+count = 0
+
 
 class Registration(StatesGroup):
     user_id = State()
@@ -55,20 +57,37 @@ async def user_answer_1(message: types.Message, state: FSMContext):
 # @dp.message_handler(state=Registration.user_role)
 async def user_answer_2(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        # role = message.text
-        # await message.answer("Пароль")
-        # passwd = message.text
-        # print(passwd)
-        # print(role)
-        # if "adm" in role and ADM_PASSWORD in passwd:
         data['user_role'] = message.text
         await Registration.next()
-        await message.answer("С какого вы кампуса?")
+        await message.answer("Ведите свой уникальный токен?")
 
 
+# @dp.message_handlers(state=Registration.check_password)
 async def check_password(message: types.Message, state: FSMContext):
-
-    await Registration.next()
+    global count
+    count += 1
+    pasword = message.text
+    data = await state.get_data()
+    print(data)
+    if pasword == ADM_PASSWORD and data['user_role'] == 'adm':
+        await Registration.next()
+        count = 0
+        await message.answer("Из какого вы кампуса")
+    elif pasword == STUDENT_PASSWORD and data['user_role'] == 'student':
+        await Registration.next()
+        count = 0
+        await message.answer("Из какого вы кампуса")
+    elif pasword == INTENSIVIST_PASSWORD and data['user_role'] == 'intensivist':
+        await Registration.next()
+        count = 0
+        await message.answer("Из какого вы кампуса")
+    else:
+        await message.answer("Неверный токен!!!")
+        await message.answer("Попробуйте еще раз")
+        await Registration.check_password.set()
+        if count == 3:
+            await message.answer("Попробуйте сначала")
+            await state.finish()
 
 
 # Ловим тертий ответ от пользователя
@@ -82,6 +101,8 @@ async def user_answer_3(message: types.Message, state: FSMContext):
     await user_db.sql_add_users(state)
     await message.answer("Вы успешно зарегестрировались")
     await state.finish()
+
+
 
 
 # @dp.message_handler(commands=["start"])
@@ -108,6 +129,11 @@ async def cmd_show(message: types.Message):
     read = await user_db.sql_output_all_users()
     await message.answer(*read)
 
+# @dp.message_handler(commands=['my'])
+async def cmd_my(message: types.Message):
+    read = await user_db.sql_my_booking(message.from_user.id)
+    await message.answer(*read)
+
 
 def register_handlers_system(dp : Dispatcher):
     dp.register_message_handler(cmd_start, commands=["start"])
@@ -115,5 +141,7 @@ def register_handlers_system(dp : Dispatcher):
     # dp.register_message_handler(user_answer_0, state=Registration.user_id)
     dp.register_message_handler(user_answer_1, state=Registration.user_name)
     dp.register_message_handler(user_answer_2, state=Registration.user_role)
+    dp.register_message_handler(check_password, state=Registration.check_password)
     dp.register_message_handler(user_answer_3, state=Registration.campus_name)
     dp.register_message_handler(cmd_show, commands=["show"])
+    dp.register_message_handler(cmd_my, commands=['my'])

@@ -3,6 +3,7 @@ from create_bot import dp
 from handlers import admin, system_commands, intensivist, student
 from databases import sql_database
 
+
 async def on_starttup(_):
     print("Бот запущен")
 

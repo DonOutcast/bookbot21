@@ -24,9 +24,11 @@ class DatabaseBot:
         if self.base:
             print("Data base connected OK!")
             self.cur.execute(
-                """CREATE TABLE IF NOT EXISTS booking (start_time DATE,
+                """CREATE TABLE IF NOT EXISTS booking ( id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                                        start_time DATE,
                                                         end_time DATE,
                                                         status INTEGER,
+                                                        description VARCHAR(50),
                                                         user_id INTEGER,
                                                         object_id INTEGER
                                                         )"""
@@ -37,7 +39,7 @@ class DatabaseBot:
         if self.base:
             print("Data base connected OK!")
             self.cur.execute(
-                """CREATE TABLE IF NOT EXISTS objects (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                """CREATE TABLE IF NOT EXISTS objects ( id INTEGER PRIMARY KEY AUTOINCREMENT,
                                                         name VARCHAR(30),
                                                         type VARCHAR(20),
                                                         description VARCHAR(50),
@@ -63,23 +65,44 @@ class DatabaseBot:
             self.cur.execute('''INSERT INTO objects (name, type, description, campus, floor, number_of_the_room, image)
                                 VALUES(?, ?, ?, ?, ?, ?, ?);''', (tuple(data.values())))
             self.base.commit()
+    #
+    # async def sql_output(self, message):
+    #     for ret in self.cur.execute("SELECT * FROM objects").fetchall():
+    #         await bot.send_photo(message.from_user.id, ret[7],
+    #                              f'{ret[0]}\n {ret[1]}\n {ret[2]}\n {ret[3]}\n {ret[4]}\n {ret[5]}\n {ret[6]}')
 
-    async def sql_output(self, message):
-        for ret in self.cur.execute("SELECT * FROM objects").fetchall():
-            await bot.send_photo(message.from_user.id, ret[7],
-                                 f'{ret[0]}\n {ret[1]}\n {ret[2]}\n {ret[3]}\n {ret[4]}\n {ret[5]}\n {ret[6]}')
+    async def sql_my_booking(self, user_id):
+        ret = self.cur.execute('''  SELECT booking.description, objects.type, objects.name, objects.campus, objects.floor, objects.number_of_the_room, booking.start_time, booking.end_time
+                                    FROM objects
+                                    JOIN booking
+                                    On objects.id=booking.object_id
+                                    WHERE booking.user_id=?''', (user_id,)
+                               ).fetchall()
+        return ret
+
+    async def sql_cancel_booking(self, booking_id):
+        self.cur.execute(''' UPDATE booking 
+                            SET status=?
+                            WHERE id=?''', (0, booking_id))
+        self.base.commit()
+
 
     async def sql_booking(self, state):
         async with state.proxy() as data:
             data = tuple(data.values())
+            print(data)
             ret = self.cur.execute('''  SELECT objects.id
                                         FROM objects
                                         JOIN users
                                         On objects.campus=users.campus
-                                        WHERE objects.type=? and objects.name=?''', (data[1], data[2])
-                                   ).fetchall()
-            self.cur.execute('INSERT INTO booking VALUES(?, ?, ?, ?, ?);', (data[3], data[4], 1, data[0], ret[0][0]))
-            self.base.commit()
+                                        WHERE objects.type=? and objects.name=?
+                                        LIMIT 1''', (data[2], data[3])
+                                   ).fetchone()
+            if ret is not None:
+                self.cur.execute('INSERT INTO booking ( start_time, end_time ,status, description, user_id, object_id ) VALUES(?, ?, ?, ?, ?, ?);', (data[-2], data[-1], 1, data[1], data[0], ret[0]))
+                self.base.commit()
+            else:
+                print("Ошибка бронирования")
 
     async def check_registration(self, user_id) -> bool:
         return self.cur.execute("SELECT id FROM users WHERE id=?", (user_id,)).fetchone() is not None

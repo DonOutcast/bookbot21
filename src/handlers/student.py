@@ -1,4 +1,6 @@
 from aiogram import types, Dispatcher
+from aiogram.types import ContentType
+
 from src.create_bot import bot
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
@@ -35,14 +37,31 @@ async def cmd_booking(message: types.Message, state: FSMContext):
     else:
         await message.answer("Зарегестрируйся для бронирования объектов")
 
+# @dp.message_handler(content_types=[ContentType.ANY], state=Opros.Q6_get_verse_Pushkin)
+# async def get_verse_Pushkin(mes: types.Message, state: FSMContext):
+#     if mes.content_type == 'voice':
+#         print(f'[Q6] {mes.from_user.username} Получили аудиозапись')
+#     elif mes.content_type == 'video_note':
+#         print(f'[Q6] {mes.from_user.username} Получили видеоссобщение')
+#     elif mes.content_type == 'video':
+#         print(f'[Q6] {mes.from_user.username} Получили видеозапись')
+#     elif mes.content_type == 'text':
+#         print(f'[Q6] {mes.from_user.username} Получили текст')
+
 
 # @dp.message_handlers(state=Student.description)
 async def log_user_answer_1(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['description'] = message.text
-    await Student.next()
-    new_keyboard = await inline_type_list(user_db, message.from_user.id)
-    await message.answer("Выберите тип объекта", reply_markup=new_keyboard)
+    if message.content_type != 'text':
+        await message.answer("Сюда нужно ввести только текст!!!!")
+        await message.delete()
+        await Student.description.set()
+        await message.answer("Введите описание мероприятия", reply_markup=back_menu_keyboard)
+    else:
+        async with state.proxy() as data:
+            data['description'] = message.text
+        await Student.next()
+        new_keyboard = await inline_type_list(user_db, message.from_user.id)
+        await message.answer("Выберите тип объекта", reply_markup=new_keyboard)
     # rule = await user_db.sql_check_rule(message.from_user.id)
     # if "".join(rule) == 'adm':
     #     await message.answer("Game")
@@ -227,7 +246,7 @@ async def remove_calendar(callback_query: types.CallbackQuery, state: FSMContext
 
 def register_handlers_student(dp: Dispatcher):
     dp.register_message_handler(cmd_booking, lambda message: 'Бронирование ✅' in message.text, state=None)
-    dp.register_message_handler(log_user_answer_1, state=Student.description)
+    dp.register_message_handler(log_user_answer_1, state=Student.description, content_types=[ContentType.ANY])
     dp.register_callback_query_handler(log_user_answer_2, filter_list.filter(action='get_type_list'), state=Student.type_of_object)
 
     dp.register_callback_query_handler(log_user_answer_3,  filter_list.filter(action='get_object_list'), state=Student.name_of_object)

@@ -40,8 +40,12 @@ async def cmd_reg(message: types.Message, state: FSMContext):
 
 
 async def cmd_cancel_registration(message: types.Message, state: FSMContext):
+
     await message.delete()
-    await bot.delete_message(message.from_user.id, message_id=message.message_id - 1)
+    try:
+        await bot.delete_message(message.from_user.id, message_id=message.message_id - 1)
+    except:
+        pass
     current_state = await state.get_state()
     if current_state is None:
         await message.answer('Вы вернулись в главное меню', reply_markup=keyboards_menu)
@@ -89,7 +93,7 @@ def output_warning(name_of_button) -> str:
     result = ""
     if name_of_button == 'adm':
         result = "Админа 🦁"
-    elif name_of_button == 'student 👨‍💻':
+    elif name_of_button == 'student':
         result = "Студента "
     else:
         result = "Интенсивиста 🥷"
@@ -185,7 +189,7 @@ async def cmd_my(message: types.Message):
 async def delete_booking(callback: types.CallbackQuery, callback_data: dict):
     await user_db.sql_cancel_booking(callback_data['booking_id'])
     await callback.answer("Бронь успешно отменена ", show_alert=True)
-
+    await callback.message.delete()
 
 # @dp.message_handler(lambda message: "Помощь 🆘" in message.text)
 async def cmd_help(message: types.Message):

@@ -8,6 +8,7 @@ from src.config import ADM_PASSWORD, STUDENT_PASSWORD, INTENSIVIST_PASSWORD
 from src.handlers.admin import user_db
 from src.my_calendar.inline_calendar import get_date, filter_list_date
 from src.my_calendar.inline_time_list import get_time, filter_list_time
+from src.keyboards.system_kb import back_menu_keyboard
 
 
 class Student(StatesGroup):
@@ -28,7 +29,7 @@ async def cmd_booking(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['user_id'] = message.from_user.id
     await Student.next()
-    await message.answer("Введите описание мероприятия")
+    await message.answer("Введите описание мероприятия", reply_markup=back_menu_keyboard)
 
 
 # @dp.message_handlers(state=Student.description)

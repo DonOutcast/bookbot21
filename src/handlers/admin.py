@@ -7,6 +7,7 @@ from src.databases import sql_database
 from src.config import ADM_PASSWORD, STUDENT_PASSWORD, INTENSIVIST_PASSWORD
 from src.databases import sql_database
 from src.keyboards.inline_kb import city_markup, objects_markup
+from src.keyboards.system_kb import back_menu_keyboard
 
 
 class AdmRoot(StatesGroup):
@@ -25,10 +26,11 @@ user_db.sql_create_booking()
 user_db.sql_create_objects()
 
 
+
 # @dp.message_handler(commands=["add"], state=None)
 async def cmd_add(message: types.Message):
     await AdmRoot.first()
-    await message.answer("Введите название объекта")
+    await message.answer("Введите название объекта", reply_markup=back_menu_keyboard)
 
 
 # @dp.message_handler(state=AdmRoot.name_for_object)

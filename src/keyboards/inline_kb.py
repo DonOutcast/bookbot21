@@ -1,4 +1,5 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.utils.callback_data import CallbackData
 
 
 city_markup = InlineKeyboardMarkup(row_width=1)
@@ -26,4 +27,10 @@ kitchen_room_button = InlineKeyboardButton(text="Кухня ", callback_data="ob
 
 objects_markup.add(board_games_button).add(conference_room_button).add(sports_equipment_button).add(kitchen_room_button)
 
+filter_drop_booking = CallbackData('drop', 'action', 'booking_id')
+def create_button(booking_id: int) -> InlineKeyboardMarkup:
 
+    cancle_booking = InlineKeyboardButton(text="Отменить бронь", callback_data=filter_drop_booking.new(action="bye_booking", booking_id=booking_id))
+    cancel_markup = InlineKeyboardMarkup(row_width=1)
+    cancel_markup.add(cancle_booking)
+    return cancel_markup

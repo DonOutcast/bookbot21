@@ -1,7 +1,9 @@
 import sqlite3 as sq
-import time
 
+
+from src.keyboards.inline_kb import create_button
 from src.create_bot import bot
+
 
 
 class DatabaseBot:
@@ -75,20 +77,20 @@ class DatabaseBot:
     #                              f'{ret[0]}\n {ret[1]}\n {ret[2]}\n {ret[3]}\n {ret[4]}\n {ret[5]}\n {ret[6]}')
 
     async def sql_my_booking(self, user_id, all=True):
-        lst = self.cur.execute('''  SELECT booking.description, objects.type, objects.name, objects.campus, objects.floor, objects.number_of_the_room, booking.date, booking.start_time, booking.end_time, booking.description, objects.image
+        lst = self.cur.execute('''  SELECT booking.description, objects.type, objects.name, objects.campus, objects.floor, objects.number_of_the_room, booking.date, booking.start_time, booking.end_time, booking.description, objects.image, booking.id
                                     FROM objects
                                     JOIN booking
                                     On objects.id=booking.object_id
-                                    WHERE booking.user_id=?''', (user_id,)
+                                    WHERE booking.user_id=? AND booking.status=(?)''', (user_id, 1,)
                                ).fetchall()
         print(lst)
         if all:
             for ret in iter(lst):
-                await bot.send_photo(user_id, ret[-1], f'Мероприятие: {ret[-2]}\n\tНазвание объекта: {ret[2]}\n\tТип объекта: {ret[1]}\n\tКампус: {ret[3]}\n\tЭтаж: {ret[4]}\n\tНомер комнаты: {ret[5]}\n\tВремя брнирования: {ret[6]} {ret[7]}-{ret[8]}\n')
+                await bot.send_photo(user_id, ret[10], f'Мероприятие: {ret[9]}\n\tНазвание объекта: {ret[2]}\n\tТип объекта: {ret[1]}\n\tКампус: {ret[3]}\n\tЭтаж: {ret[4]}\n\tНомер комнаты: {ret[5]}\n\tВремя брнирования: {ret[6]} {ret[7]}-{ret[8]}\n', reply_markup=create_button(ret[11]))
         else:
             ret = lst[-1]
             await bot.send_photo(user_id, ret[-1],
-                                 f'Мероприятие: {ret[-2]}\n\tНазвание объекта: {ret[2]}\n\tТип объекта: {ret[1]}\n\tКампус: {ret[3]}\n\tЭтаж: {ret[4]}\n\tНомер комнаты: {ret[5]}\n\tВремя брнирования: {ret[6]} {ret[7]}-{ret[8]}\n')
+                                 f'Мероприятие: {ret[10]}\n\tНазвание объекта: {ret[9]}\n\tТип объекта: {ret[1]}\n\tКампус: {ret[3]}\n\tЭтаж: {ret[4]}\n\tНомер комнаты: {ret[5]}\n\tВремя брнирования: {ret[6]} {ret[7]}-{ret[8]}\n', reply_markup=create_button(ret[11]))
 
     async def sql_check_booking(self, date, object_id):
         print(date, object_id, type(date), type(object_id))
@@ -101,7 +103,7 @@ class DatabaseBot:
     async def sql_cancel_booking(self, booking_id):
         self.cur.execute(''' UPDATE booking 
                             SET status=?
-                            WHERE id=?''', (0, booking_id))
+                            WHERE id=?''', (0, int(booking_id)))
         self.base.commit()
 
     async def sql_check_rule(self, user_id):

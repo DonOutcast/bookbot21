@@ -7,6 +7,7 @@ from src.config import ADM_PASSWORD, STUDENT_PASSWORD, INTENSIVIST_PASSWORD
 from src.handlers.admin import user_db
 from src.keyboards.system_kb import keyboards_menu, back_menu_keyboard
 from src.keyboards.inline_kb import city_markup, users_markup
+from src.keyboards.inline_kb import filter_drop_booking
 from src.my_calendar.inline_calendar import get_date, filter_list_date
 from src.my_calendar.inline_time_list import get_time, filter_list_time
 
@@ -40,16 +41,11 @@ async def cmd_reg(message: types.Message, state: FSMContext):
 
 async def cmd_cancel_registration(message: types.Message, state: FSMContext):
     await message.delete()
-    # current_state = await state.get_state()
-    # if current_state is None:
-    #     return
+    current_state = await state.get_state()
+    if current_state is None:
+        return
     await state.finish()
-    # await bot.edit_message_text(
-    #     chat_id=callback.message.chat.id,
-    #     message_id=callback.message.message_id,
-    #     text=callback.message.text,
-    #     reply_markup=None)
-    await message.answer('Регистрация отменена', reply_markup=keyboards_menu)
+    await message.answer('Вы вернулись в главное меню', reply_markup=keyboards_menu)
 
 
 # @dp.message_handlers(state=Registration.user_id)
@@ -67,9 +63,6 @@ async def user_answer_1(message: types.Message, state: FSMContext):
 
         await Registration.next()
         await message.answer("Кто вы по жизни!", reply_markup=users_markup)
-
-
-
 
 
 # Ловим второй ответ от птльзователя
@@ -177,13 +170,17 @@ async def cmd_task(message: types.Message):
 # @dp.message_handlers(commands=["show"])
 async def cmd_show(message: types.Message):
     read = await user_db.sql_output_all_users()
-    print(*read)
     await message.answer(read)
 
 
 # @dp.message_handler(commands=['my'])
 async def cmd_my(message: types.Message):
     await user_db.sql_my_booking(message.from_user.id)
+
+
+# @dp.callback_query_handler(filter_drop_booking.filter(action="bye_booking"))
+async def delete_booking(callback: types.CallbackQuery, callback_data: dict):
+    await user_db.sql_cancel_booking(callback_data['booking_id'])
 
 
 # @dp.message_handler(lambda message: "Помощь 🆘" in message.text)
@@ -212,3 +209,4 @@ def register_handlers_system(dp : Dispatcher):
     dp.register_message_handler(cmd_double, commands=['double'])
     dp.register_message_handler(cmd_help, lambda message: "Помощь 🆘" in message.text)
     dp.register_message_handler(cmd_information, lambda message: "Информация ⚠" in message.text)
+    dp.register_callback_query_handler(delete_booking, filter_drop_booking.filter(action="bye_booking"))

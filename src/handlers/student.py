@@ -1,15 +1,15 @@
 from aiogram import types, Dispatcher
-from src.create_bot import dp, bot
+from src.create_bot import bot
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher.filters import Text
-from src.databases import sql_database
-from src.config import ADM_PASSWORD, STUDENT_PASSWORD, INTENSIVIST_PASSWORD
-from src.handlers.admin import user_db
+from src.databases.init_database import user_db
 from src.my_calendar.inline_calendar import get_date, filter_list_date
 from src.my_calendar.inline_time_list import get_time, filter_list_time
 from src.keyboards.system_kb import back_menu_keyboard, keyboards_menu
 from src.keyboards.inline_kb import objects_markup
+from src.keyboards.inline_generation import filter_list, inline_type_list, inline_object_list
+
 
 class Student(StatesGroup):
     user_id = State()
@@ -41,18 +41,30 @@ async def log_user_answer_1(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['description'] = message.text
     await Student.next()
-    await message.answer("Выберите тип объекта", reply_markup=objects_markup)
-    rule = await user_db.sql_check_rule(message.from_user.id)
+    new_keyboard = await inline_type_list(user_db, message.from_user.id)
+    await message.answer("Выберите тип объекта", reply_markup=new_keyboard)
+    # rule = await user_db.sql_check_rule(message.from_user.id)
     # if "".join(rule) == 'adm':
     #     await message.answer("Game")
 
 
-
 # @dp.message_handlers(state=Student.type_of_object)
-async def log_user_answer_2(callback: types.CallbackQuery, state: FSMContext):
-    object = callback.data.split('_')[1]
+async def log_user_answer_2(callback: types.CallbackQuery, callback_data: dict, state: FSMContext):
     async with state.proxy() as data:
-        data['type_of_object'] = object
+
+        print(data)
+    print(callback_data)
+    await callback.answer()
+    await callback.message.delete()
+    # await bot.edit_message_text(
+    #     chat_id=callback.message.chat.id,
+    #     message_id=callback.message.message_id,
+    #     text=callback.message.text,
+    #     reply_markup=None)
+    await callback.message.answer('Выберите объект:', reply_markup=await inline_object_list(user_db, callback_data['id']))
+    # object = callback.data.split('_')[1]
+    async with state.proxy() as data:
+        data['type_of_object'] = callback_data['id']
     await Student.next()
     await callback.message.answer("Выберите название объекта")
 
@@ -64,20 +76,20 @@ async def log_user_answer_2(callback: types.CallbackQuery, state: FSMContext):
 
 
 # @dp.message_handler(state=Student.name_of_object)
-async def log_user_answer_3(message: types.Message, state: FSMContext):
-
+async def log_user_answer_3(callback: types.CallbackQuery, callback_data: dict, state: FSMContext):
+    await callback.message.delete()
     async with state.proxy() as data:
-        data['name_of_object'] = message.text.capitalize()
+        data['name_of_object'] = callback_data["id"]
     await Student.next()
     object_id = await user_db.sql_get_id(state)
     if object_id:
         async with state.proxy() as data:
             data['object_id'] = object_id[0]
         await Student.next()
-        await message.answer("Выберите дату", reply_markup=await get_date())
+        await callback.message.answer("Выберите дату", reply_markup=await get_date())
     else:
         await state.finish()
-        await message.answer("Соряян", reply_markup=keyboards_menu)
+        await callback.message.answer("Соряян", reply_markup=keyboards_menu)
 
 # # @dp.message_handler(state=Student.object_id)
 # async def checking_object_id(message: types.Message, state: FSMContext):
@@ -187,19 +199,43 @@ async def remove_calendar(callback_query: types.CallbackQuery, state: FSMContext
     await callback_query.message.delete()
 
 
+
+
+
+
+
+
+
+
+
+# async def cmd_start2(call: types.CallbackQuery, callback_data: dict):
+#     await call.answer()
+#     await call.message.answer('Выберите объект:', reply_markup=inline_object_list(callback_data['id']))
+#
+#
+# async def cmd_start3(call: types.CallbackQuery, callback_data: dict):
+#     await call.answer()
+#     await call.message.answer(f"Получили: {callback_data['id']}")
+
+
+# def register_handlers_system(dp: Dispatcher):
+#
+#     dp.register_callback_query_handler(cmd_start2, filter_list.filter(action='get_type_list'))
+#     dp.register_callback_query_handler(cmd_start3, filter_list.filter(action='get_object_list'))
+
+
+
 def register_handlers_student(dp: Dispatcher):
     dp.register_message_handler(cmd_booking, lambda message: 'Бронирование ✅' in message.text, state=None)
     dp.register_message_handler(log_user_answer_1, state=Student.description)
-    dp.register_callback_query_handler(log_user_answer_2, state=Student.type_of_object)
-    # dp.register_message_handler(log_user_answer_date, state=Student.user_date)
-    dp.register_message_handler(log_user_answer_3, state=Student.name_of_object)
-    # dp.register_message_handler(checking_object_id, state=Student.object_id)
+    dp.register_callback_query_handler(log_user_answer_2, filter_list.filter(action='get_type_list'), state=Student.type_of_object)
+
+    dp.register_callback_query_handler(log_user_answer_3,  filter_list.filter(action='get_object_list'), state=Student.name_of_object)
     dp.register_callback_query_handler(enter_test_1, filter_list_date.filter(type='refresh'), state=Student.user_date)
     dp.register_callback_query_handler(remove_calendar, Text(equals="cancel_calendar"), state=Student.user_date)
     dp.register_message_handler(check_choice_date, state=Student.user_date)
     dp.register_callback_query_handler(enter_test_2, filter_list_date.filter(type='get_date'), state=Student.user_date)
     dp.register_callback_query_handler(enter_test_3, filter_list_time.filter(type='first'), state=Student.user_date)
     dp.register_callback_query_handler(enter_test_4, filter_list_time.filter(type='last'), state=Student.user_date)
-    # dp.register_message_handler(log_user_answer_4, state=Student.start_time)
-    # dp.register_message_handler(log_user_answer_5, state=Student.end_time)
+
 

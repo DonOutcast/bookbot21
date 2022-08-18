@@ -1,7 +1,7 @@
 from aiogram.utils import executor
 from create_bot import dp
-from handlers import admin, system_commands, intensivist, student
-from databases import sql_database
+from handlers import admin, system_commands, student
+from src.databases import sql_database
 
 
 async def on_starttup(_):

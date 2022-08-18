@@ -71,10 +71,6 @@ class DatabaseBot:
                                 VALUES(?, ?, ?, ?, ?, ?, ?);''', (tuple(data.values())))
             self.base.commit()
 
-    # async def sql_output(self, message):
-    #     for ret in self.cur.execute("SELECT * FROM objects").fetchall():
-    #         await bot.send_photo(message.from_user.id, ret[7],
-    #                              f'{ret[0]}\n {ret[1]}\n {ret[2]}\n {ret[3]}\n {ret[4]}\n {ret[5]}\n {ret[6]}')
 
     async def sql_my_booking(self, user_id, all=True):
         lst = self.cur.execute('''  SELECT booking.description, objects.type, objects.name, objects.campus, objects.floor, objects.number_of_the_room, booking.date, booking.start_time, booking.end_time, booking.description, objects.image, booking.id
@@ -101,6 +97,22 @@ class DatabaseBot:
                                     FROM booking
                                     WHERE booking.date=? AND status=1 AND object_id=?''', (date, object_id,)
                                ).fetchall()
+        return ret
+
+    async def sql_object_name(self):
+        ret = self.cur.execute('''  SELECT DISTINCT type
+                                    FROM objects
+                                    ''',
+                               ).fetchall()
+        return ret
+
+    async def sql_list_object(self, type_name):
+        ret = self.cur.execute('''  SELECT DISTINCT id, name
+                                    FROM objects
+                                    WHERE type=?
+                                    ''', (type_name, )
+                               ).fetchall()
+        print(ret)
         return ret
 
     async def sql_cancel_booking(self, booking_id):

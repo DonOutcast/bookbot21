@@ -5,7 +5,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher.filters import Text
 from src.databases import sql_database
 from src.config import ADM_PASSWORD, STUDENT_PASSWORD, INTENSIVIST_PASSWORD
-from src.databases import sql_database
+from src.databases.init_database import user_db
 from src.keyboards.inline_kb import city_markup, objects_markup
 from src.keyboards.system_kb import back_menu_keyboard, keyboards_menu
 
@@ -20,10 +20,10 @@ class AdmRoot(StatesGroup):
     photo = State()
 
 
-user_db = sql_database.DatabaseBot("test.db") #test.db
-user_db.sql_create_users()
-user_db.sql_create_booking()
-user_db.sql_create_objects()
+# user_db = sql_database.DatabaseBot("test1.db") #test1.db
+# user_db.sql_create_users()
+# user_db.sql_create_booking()
+# user_db.sql_create_objects()
 
 
 
@@ -31,11 +31,11 @@ user_db.sql_create_objects()
 # @dp.message_handler(commands=["add"], state=None)
 async def cmd_add(message: types.Message):
     rule = await user_db.sql_check_rule(message.from_user.id)
-    if 'adm' in rule:
+    if rule is None:
+        await message.answer("Зарегистрируйтесь!")
+    elif 'adm' in rule:
         await AdmRoot.first()
         await message.answer("Введите название объекта", reply_markup=back_menu_keyboard)
-    elif rule is None:
-        await message.answer("Зарегистрируйтесь!")
     else:
         await message.answer("Недостаточно прав! Обратитесь к ADM!")
 
@@ -112,3 +112,4 @@ def register_handlers_adm(dp : Dispatcher):
     dp.register_message_handler(adm_answer_5, state=AdmRoot.floor)
     dp.register_message_handler(adm_answer_6, state=AdmRoot.number_of_room)
     dp.register_message_handler(adm_answer_7, content_types=['photo'], state=AdmRoot.photo)
+

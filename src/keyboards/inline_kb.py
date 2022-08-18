@@ -2,6 +2,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.callback_data import CallbackData
 
 
+
 city_markup = InlineKeyboardMarkup(row_width=1)
 users_markup = InlineKeyboardMarkup(row_width=1)
 objects_markup = InlineKeyboardMarkup(row_width=1)
@@ -20,10 +21,10 @@ intensivist_inline_button = InlineKeyboardButton(text="Интенсивист �
 users_markup.add(adm_inline_button).add(student_inline_button).add(intensivist_inline_button)
 
 
-board_games_button = InlineKeyboardButton(text="Настольные игры ", callback_data='object_games')
-conference_room_button = InlineKeyboardButton(text="Переговорная ", callback_data='object_conference')
-sports_equipment_button = InlineKeyboardButton(text="Спортивный инвентарь", callback_data='object_sports')
-kitchen_room_button = InlineKeyboardButton(text="Кухня ", callback_data="object_kitchen")
+board_games_button = InlineKeyboardButton(text="Настольные игры 🎮 🎲♟", callback_data='object_Настольные игры')
+conference_room_button = InlineKeyboardButton(text="Переговорные 💼🕰", callback_data='object_Переговорные')
+sports_equipment_button = InlineKeyboardButton(text="Спортивный инвентарь 🏀🏓🎯", callback_data='object_Спортивный инвентарь')
+kitchen_room_button = InlineKeyboardButton(text="Кухня 🍽", callback_data="object_Кухня")
 
 objects_markup.add(board_games_button).add(conference_room_button).add(sports_equipment_button).add(kitchen_room_button)
 
@@ -41,3 +42,40 @@ def create_button(booking_id: int) -> InlineKeyboardMarkup:
 kzn_inline_button = InlineKeyboardButton(text=" 🏯", callback_data='city_kzn')
 msk_inline_button = InlineKeyboardButton(text="Москва 🏭", callback_data='city_msk')
 nsk_inline_button = InlineKeyboardButton(text="Новосибирск 🏰", callback_data='city_nsk')
+
+# filter_list = CallbackData('type', 'action', 'id')
+
+
+# async def type_list():
+#     res = await user_db.sql_object_name()
+#     return res
+#
+#
+# async def object_list(type_name):
+#     lis_of_type_name = await user_db.sql_list_object(type_name)
+#     return lis_of_type_name
+
+
+# def inline_type_list():
+#     list_types = type_list()
+#     row_button = []
+#     for type_name in list_types:
+#         line = InlineKeyboardButton(text=type_name,
+#                                     callback_data=filter_list.new(action='get_type_list',
+#                                                                   id=type_name))
+#         row_button.append([line, ])
+#     return InlineKeyboardMarkup(inline_keyboard=row_button)
+#
+#
+# def inline_object_list(type_name):
+#     list_object = object_list(type_name)
+#     row_button = []
+#     for object_id, object_name in list_object:
+#         line = InlineKeyboardButton(text=object_name,
+#                                     callback_data=filter_list.new(action='get_object_list',
+#                                                                   id=object_id))
+#         row_button.append([line, ])
+#     return InlineKeyboardMarkup(inline_keyboard=row_button)
+
+
+

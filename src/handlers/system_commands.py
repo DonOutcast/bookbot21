@@ -4,7 +4,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher.filters import Text
 from src.config import ADM_PASSWORD, STUDENT_PASSWORD, INTENSIVIST_PASSWORD
-from src.handlers.admin import user_db
+from src.databases.init_database import user_db
 from src.keyboards.system_kb import keyboards_menu, back_menu_keyboard
 from src.keyboards.inline_kb import city_markup, users_markup
 from src.keyboards.inline_kb import filter_drop_booking
@@ -41,8 +41,10 @@ async def cmd_reg(message: types.Message, state: FSMContext):
 
 async def cmd_cancel_registration(message: types.Message, state: FSMContext):
     await message.delete()
+    await bot.delete_message(message.from_user.id, message_id=message.message_id - 1)
     current_state = await state.get_state()
     if current_state is None:
+        await message.answer('Вы вернулись в главное меню', reply_markup=keyboards_menu)
         return
     await state.finish()
     await message.answer('Вы вернулись в главное меню', reply_markup=keyboards_menu)
@@ -171,6 +173,7 @@ async def cmd_task(message: types.Message):
 async def cmd_show(message: types.Message):
     read = await user_db.sql_output_all_users()
     await message.answer(read)
+    await user_db.sql_list_object("games")
 
 
 # @dp.message_handler(commands=['my'])

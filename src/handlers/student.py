@@ -8,8 +8,8 @@ from src.config import ADM_PASSWORD, STUDENT_PASSWORD, INTENSIVIST_PASSWORD
 from src.handlers.admin import user_db
 from src.my_calendar.inline_calendar import get_date, filter_list_date
 from src.my_calendar.inline_time_list import get_time, filter_list_time
-from src.keyboards.system_kb import back_menu_keyboard
-
+from src.keyboards.system_kb import back_menu_keyboard, keyboards_menu
+from src.keyboards.inline_kb import objects_markup
 
 class Student(StatesGroup):
     user_id = State()
@@ -25,11 +25,15 @@ class Student(StatesGroup):
 
 # @dp.message_handlers(commands=['/booking'], state=None)
 async def cmd_booking(message: types.Message, state: FSMContext):
-    await Student.first()
-    async with state.proxy() as data:
-        data['user_id'] = message.from_user.id
-    await Student.next()
-    await message.answer("Введите описание мероприятия", reply_markup=back_menu_keyboard)
+    rule = await user_db.sql_check_rule(message.from_user.id)
+    if rule is not None:
+        await Student.first()
+        async with state.proxy() as data:
+            data['user_id'] = message.from_user.id
+        await Student.next()
+        await message.answer("Введите описание мероприятия", reply_markup=back_menu_keyboard)
+    else:
+        await message.answer("Зарегестрируйся для бронирования объектов")
 
 
 # @dp.message_handlers(state=Student.description)
@@ -37,18 +41,20 @@ async def log_user_answer_1(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['description'] = message.text
     await Student.next()
-    await message.answer("Выберите тип объекта")
+    await message.answer("Выберите тип объекта", reply_markup=objects_markup)
     rule = await user_db.sql_check_rule(message.from_user.id)
     # if "".join(rule) == 'adm':
     #     await message.answer("Game")
 
 
+
 # @dp.message_handlers(state=Student.type_of_object)
-async def log_user_answer_2(message: types.Message, state: FSMContext):
+async def log_user_answer_2(callback: types.CallbackQuery, state: FSMContext):
+    object = callback.data.split('_')[1]
     async with state.proxy() as data:
-        data['type_of_object'] = message.text
+        data['type_of_object'] = object
     await Student.next()
-    await message.answer("Выберите название объекта")
+    await callback.message.answer("Выберите название объекта")
 
 # # @dp.message_handler(state=Student.check_rule)
 # async def check_rule(message: types.Message, state: FSMContext):
@@ -61,7 +67,7 @@ async def log_user_answer_2(message: types.Message, state: FSMContext):
 async def log_user_answer_3(message: types.Message, state: FSMContext):
 
     async with state.proxy() as data:
-        data['name_of_object'] = message.text
+        data['name_of_object'] = message.text.capitalize()
     await Student.next()
     object_id = await user_db.sql_get_id(state)
     if object_id:
@@ -71,7 +77,7 @@ async def log_user_answer_3(message: types.Message, state: FSMContext):
         await message.answer("Выберите дату", reply_markup=await get_date())
     else:
         await state.finish()
-        await message.answer("Соряян")
+        await message.answer("Соряян", reply_markup=keyboards_menu)
 
 # # @dp.message_handler(state=Student.object_id)
 # async def checking_object_id(message: types.Message, state: FSMContext):
@@ -184,7 +190,7 @@ async def remove_calendar(callback_query: types.CallbackQuery, state: FSMContext
 def register_handlers_student(dp: Dispatcher):
     dp.register_message_handler(cmd_booking, lambda message: 'Бронирование ✅' in message.text, state=None)
     dp.register_message_handler(log_user_answer_1, state=Student.description)
-    dp.register_message_handler(log_user_answer_2, state=Student.type_of_object)
+    dp.register_callback_query_handler(log_user_answer_2, state=Student.type_of_object)
     # dp.register_message_handler(log_user_answer_date, state=Student.user_date)
     dp.register_message_handler(log_user_answer_3, state=Student.name_of_object)
     # dp.register_message_handler(checking_object_id, state=Student.object_id)

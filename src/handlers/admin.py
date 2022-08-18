@@ -7,7 +7,7 @@ from src.databases import sql_database
 from src.config import ADM_PASSWORD, STUDENT_PASSWORD, INTENSIVIST_PASSWORD
 from src.databases import sql_database
 from src.keyboards.inline_kb import city_markup, objects_markup
-from src.keyboards.system_kb import back_menu_keyboard
+from src.keyboards.system_kb import back_menu_keyboard, keyboards_menu
 
 
 class AdmRoot(StatesGroup):
@@ -27,16 +27,24 @@ user_db.sql_create_objects()
 
 
 
+
 # @dp.message_handler(commands=["add"], state=None)
 async def cmd_add(message: types.Message):
-    await AdmRoot.first()
-    await message.answer("Введите название объекта", reply_markup=back_menu_keyboard)
+    rule = await user_db.sql_check_rule(message.from_user.id)
+    if 'adm' in rule:
+        await AdmRoot.first()
+        await message.answer("Введите название объекта", reply_markup=back_menu_keyboard)
+    elif rule is None:
+        await message.answer("Зарегистрируйтесь!")
+    else:
+        await message.answer("Недостаточно прав! Обратитесь к ADM!")
+
 
 
 # @dp.message_handler(state=AdmRoot.name_for_object)
 async def adm_answer_1(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        data['name_for_object'] = message.text
+        data['name_for_object'] = message.text.capitalize()
         await AdmRoot.next()
         await message.answer("Введите тип объекта!", reply_markup=objects_markup)
 
@@ -91,7 +99,7 @@ async def adm_answer_7(message: types.Message, state: FSMContext):
         data['photo'] = message.photo[0].file_id
     await user_db.sql_add_objects(state)
     # await user_db.sql_output(message)
-    await message.answer("Вы успешно добавили!!!")
+    await message.answer("Вы успешно добавили!!!", reply_markup=keyboards_menu)
     await state.finish()
 
 

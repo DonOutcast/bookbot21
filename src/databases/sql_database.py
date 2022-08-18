@@ -84,13 +84,16 @@ class DatabaseBot:
                                     WHERE booking.user_id=? AND booking.status=(?)''', (user_id, 1,)
                                ).fetchall()
         print(lst)
+        if len(lst) == 0:
+            await bot.send_message(user_id, "У вас еще нету броней ")
+
         if all:
             for ret in iter(lst):
                 await bot.send_photo(user_id, ret[10], f'Мероприятие: {ret[9]}\n\tНазвание объекта: {ret[2]}\n\tТип объекта: {ret[1]}\n\tКампус: {ret[3]}\n\tЭтаж: {ret[4]}\n\tНомер комнаты: {ret[5]}\n\tВремя брнирования: {ret[6]} {ret[7]}-{ret[8]}\n', reply_markup=create_button(ret[11]))
         else:
             ret = lst[-1]
-            await bot.send_photo(user_id, ret[-1],
-                                 f'Мероприятие: {ret[10]}\n\tНазвание объекта: {ret[9]}\n\tТип объекта: {ret[1]}\n\tКампус: {ret[3]}\n\tЭтаж: {ret[4]}\n\tНомер комнаты: {ret[5]}\n\tВремя брнирования: {ret[6]} {ret[7]}-{ret[8]}\n', reply_markup=create_button(ret[11]))
+            await bot.send_photo(user_id, ret[10],
+                                 f'Мероприятие: {ret[9]}\n\tНазвание объекта: {ret[2]}\n\tТип объекта: {ret[1]}\n\tКампус: {ret[3]}\n\tЭтаж: {ret[4]}\n\tНомер комнаты: {ret[5]}\n\tВремя брнирования: {ret[6]} {ret[7]}-{ret[8]}\n', reply_markup=create_button(ret[11]))
 
     async def sql_check_booking(self, date, object_id):
         print(date, object_id, type(date), type(object_id))

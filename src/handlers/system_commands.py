@@ -181,6 +181,7 @@ async def cmd_my(message: types.Message):
 # @dp.callback_query_handler(filter_drop_booking.filter(action="bye_booking"))
 async def delete_booking(callback: types.CallbackQuery, callback_data: dict):
     await user_db.sql_cancel_booking(callback_data['booking_id'])
+    await callback.answer("Бронь успешно отменена ", show_alert=True)
 
 
 # @dp.message_handler(lambda message: "Помощь 🆘" in message.text)
@@ -195,9 +196,9 @@ async def cmd_information(message: types.Message):
 
 def register_handlers_system(dp : Dispatcher):
     dp.register_message_handler(cmd_start, commands=["start"])
+    # dp.register_message_handler(cmd_cancel_registration, state="*", commands=['Вернуться в главное меню 📜'])
+    dp.register_message_handler(cmd_cancel_registration, Text(equals="Вернуться в главное меню 📜"), state="*")
     dp.register_message_handler(cmd_reg, lambda message: "Регистрация 🔐" in message.text, state=None)
-    dp.register_message_handler(cmd_cancel_registration, state="*", commands=['Вернуться в главное меню 📜'])
-    dp.register_message_handler(cmd_cancel_registration, Text(equals="Вернуться в главное меню 📜", ignore_case=True), state="*")
     # dp.register_message_handler(user_answer_0, state=Registration.user_id)
     dp.register_message_handler(user_answer_1, state=Registration.user_name)
     dp.register_callback_query_handler(user_answer_2, Text(startswith="user_"), state=Registration.user_role)

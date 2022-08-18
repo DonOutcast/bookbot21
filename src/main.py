@@ -8,8 +8,8 @@ async def on_starttup(_):
     print("Бот запущен")
 
 
-admin.register_handlers_adm(dp)
 system_commands.register_handlers_system(dp)
+admin.register_handlers_adm(dp)
 student.register_handlers_student(dp)
 
 if __name__ == "__main__":

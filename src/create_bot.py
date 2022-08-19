@@ -1,5 +1,6 @@
 from aiogram import Bot, Dispatcher, types
 import config
+from os.path import abspath
 from aiogram.contrib.fsm_storage.memory import MemoryStorage # Позваляет хранить данные в оперативное памяти
 # Для созранения ответтов от пользователя
 storage = MemoryStorage()

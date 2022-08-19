@@ -20,6 +20,8 @@ class Student(StatesGroup):
     user_date = State()
 
 
+
+
 # @dp.message_handlers(commands=['/booking'], state=None)
 async def cmd_booking(message: types.Message, state: FSMContext):
     rule = await user_db.sql_check_rule(message.from_user.id)
@@ -37,6 +39,8 @@ async def cmd_booking(message: types.Message, state: FSMContext):
 async def log_user_answer_1(message: types.Message, state: FSMContext):
     if message.content_type != 'text':
         await message.answer("Сюда нужно ввести только текст!!!!")
+        await bot.send_sticker(message.from_user.id,
+                               sticker="CAACAgIAAxkBAAENm11i_0WUEosLLgLt0thPR5z5pRr3ggACoQcAAmMr4gm9FrBamSBazCkE")
         await message.delete()
         await Student.description.set()
         await message.answer("Введите описание мероприятия", reply_markup=back_menu_keyboard)
@@ -57,7 +61,8 @@ async def check_choice_type(message: types.Message):
 async def log_user_answer_2(callback: types.CallbackQuery, callback_data: dict, state: FSMContext):
     await callback.answer()
     await callback.message.delete()
-    await callback.message.answer('Выберите объект:', reply_markup=await inline_object_list(user_db, callback_data['id']))
+    await callback.message.answer('Выберите объект:',
+                                  reply_markup=await inline_object_list(user_db, callback_data['id']))
     async with state.proxy() as data:
         data['type_of_object'] = callback_data['id']
     await Student.next()
@@ -83,7 +88,7 @@ async def log_user_answer_3(callback: types.CallbackQuery, callback_data: dict, 
         await callback.message.answer("Выберите дату", reply_markup=await get_date())
     else:
         await state.finish()
-        await callback.message.answer("Соряян", reply_markup=keyboards_menu)
+        await callback.message.answer("Данный объект вам не доступен", reply_markup=keyboards_menu)
 
 
 # @dp.callback_query_handler(filter_list_date.filter(type='refresh'))
@@ -93,7 +98,7 @@ async def enter_test_1(callback_query: types.CallbackQuery, callback_data: dict)
         chat_id=callback_query.message.chat.id,
         message_id=callback_query.message.message_id,
         text=callback_query.message.text,
-        reply_markup=get_date(callback_data['date']))
+        reply_markup=await get_date(callback_data['date']))
 
 
 # @dp.message_handler(state=Student.user_date)
@@ -123,7 +128,9 @@ async def enter_test_3(callback_query: types.CallbackQuery, callback_data: dict,
         chat_id=callback_query.message.chat.id,
         message_id=callback_query.message.message_id,
         text=callback_query.message.text.replace('Выберите время начала', 'Выберите время конца'),
-        reply_markup=await get_time(date=callback_data['date'], start_time=callback_data['first_time'], object_id=object_id))
+        reply_markup=await get_time(date=callback_data['date'],
+                                    start_time=callback_data['first_time'],
+                                    object_id=object_id))
 
 
 # @dp.callback_query_handler(filter_list_time.filter(type='last'))
@@ -157,14 +164,16 @@ def register_handlers_student(dp: Dispatcher):
     dp.register_message_handler(cmd_booking, lambda message: 'Бронирование ✅' in message.text, state=None)
     dp.register_message_handler(log_user_answer_1, state=Student.description, content_types=[ContentType.ANY])
     dp.register_message_handler(check_choice_type, state=Student.type_of_object, content_types=[ContentType.ANY])
-    dp.register_callback_query_handler(log_user_answer_2, filter_list.filter(action='get_type_list'), state=Student.type_of_object)
+    dp.register_callback_query_handler(log_user_answer_2,
+                                       filter_list.filter(action='get_type_list'),
+                                       state=Student.type_of_object)
     dp.register_message_handler(check_choice_name, state=Student.name_of_object, content_types=[ContentType.ANY])
-    dp.register_callback_query_handler(log_user_answer_3,  filter_list.filter(action='get_object_list'), state=Student.name_of_object)
+    dp.register_callback_query_handler(log_user_answer_3,
+                                       filter_list.filter(action='get_object_list'),
+                                       state=Student.name_of_object)
     dp.register_callback_query_handler(enter_test_1, filter_list_date.filter(type='refresh'), state=Student.user_date)
     dp.register_callback_query_handler(remove_calendar, Text(equals="cancel_calendar"), state=Student.user_date)
     dp.register_message_handler(check_choice_date, state=Student.user_date)
     dp.register_callback_query_handler(enter_test_2, filter_list_date.filter(type='get_date'), state=Student.user_date)
     dp.register_callback_query_handler(enter_test_3, filter_list_time.filter(type='first'), state=Student.user_date)
     dp.register_callback_query_handler(enter_test_4, filter_list_time.filter(type='last'), state=Student.user_date)
-
-

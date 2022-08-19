@@ -56,7 +56,7 @@ class DatabaseBot:
             )
             self.base.commit()
 
-    async def sql_add_users(self, state: list) -> int:
+    async def sql_add_users(self, state):
         async with state.proxy() as data:
             self.cur.execute('INSERT INTO users VALUES(?, ?, ?, ?);', (tuple(data.values())))
             self.base.commit()
@@ -71,9 +71,13 @@ class DatabaseBot:
                                 VALUES(?, ?, ?, ?, ?, ?, ?);''', (tuple(data.values())))
             self.base.commit()
 
-
-    async def sql_my_booking(self, user_id, all=True):
-        lst = self.cur.execute('''  SELECT booking.description, objects.type, objects.name, objects.campus, objects.floor, objects.number_of_the_room, booking.date, booking.start_time, booking.end_time, booking.description, objects.image, booking.id
+    async def sql_my_booking(self, user_id, full=True):
+        lst = self.cur.execute('''  SELECT  booking.description, objects.type,
+                                            objects.name, objects.campus,
+                                            objects.floor, objects.number_of_the_room,
+                                            booking.date, booking.start_time,
+                                            booking.end_time, booking.description,
+                                            objects.image, booking.id
                                     FROM objects
                                     JOIN booking
                                     On objects.id=booking.object_id
@@ -83,13 +87,26 @@ class DatabaseBot:
         if len(lst) == 0:
             await bot.send_message(user_id, "У вас еще нету броней ")
 
-        if all:
+        if full:
             for ret in iter(lst):
-                await bot.send_photo(user_id, ret[10], f'Мероприятие: {ret[9]}\n\tНазвание объекта: {ret[2]}\n\tТип объекта: {ret[1]}\n\tКампус: {ret[3]}\n\tЭтаж: {ret[4]}\n\tНомер комнаты: {ret[5]}\n\tВремя брнирования: {ret[6]} {ret[7]}-{ret[8]}\n', reply_markup=create_button(ret[11]))
+                await bot.send_photo(user_id, ret[10], f'Мероприятие: {ret[9]}\n\t'
+                                                       f'Название объекта: {ret[2]}\n\t'
+                                                       f'Тип объекта: {ret[1]}\n\t'
+                                                       f'Кампус: {ret[3]}\n\t'
+                                                       f'Этаж: {ret[4]}\n\t'
+                                                       f'Номер комнаты: {ret[5]}\n\t'
+                                                       f'Время брнирования: {ret[6]} {ret[7]}-{ret[8]}\n',
+                                     reply_markup=create_button(ret[11]))
         else:
             ret = lst[-1]
-            await bot.send_photo(user_id, ret[10],
-                                 f'Мероприятие: {ret[9]}\n\tНазвание объекта: {ret[2]}\n\tТип объекта: {ret[1]}\n\tКампус: {ret[3]}\n\tЭтаж: {ret[4]}\n\tНомер комнаты: {ret[5]}\n\tВремя брнирования: {ret[6]} {ret[7]}-{ret[8]}\n', reply_markup=create_button(ret[11]))
+            await bot.send_photo(user_id, ret[10], f'Мероприятие: {ret[9]}\n\t'
+                                                   f'Название объекта: {ret[2]}\n\t'
+                                                   f'Тип объекта: {ret[1]}\n\t'
+                                                   f'Кампус: {ret[3]}\n\t'
+                                                   f'Этаж: {ret[4]}\n\t'
+                                                   f'Номер комнаты: {ret[5]}\n\t'
+                                                   f'Время брнирования: {ret[6]} {ret[7]}-{ret[8]}\n',
+                                 reply_markup=create_button(ret[11]))
 
     async def sql_check_booking(self, date, object_id):
         print(date, object_id, type(date), type(object_id))
@@ -99,14 +116,18 @@ class DatabaseBot:
                                ).fetchall()
         return ret
 
-    async def sql_object_name(self):
+    async def sql_object_type(self, user_id):
         ret = self.cur.execute('''  SELECT DISTINCT type
                                     FROM objects
-                                    ''',
+                                    JOIN users
+                                    ON objects.campus = users.campus
+                                    WHERE users.id=?
+                                    ''', (user_id, )
                                ).fetchall()
         return ret
 
     async def sql_list_object(self, type_name):
+        print("id", id)
         ret = self.cur.execute('''  SELECT DISTINCT id, name
                                     FROM objects
                                     WHERE type=?
@@ -150,7 +171,10 @@ class DatabaseBot:
                                     LIMIT 1''', (data[2], data[3])
                                ).fetchone()
         if ret is not None:
-            self.cur.execute('INSERT INTO booking ( start_time, end_time ,status, description, user_id, object_id, date ) VALUES(?, ?, ?, ?, ?, ?, ?);', (data[-2], data[-1], 1, data[1], data[0], data[4], data[5]))
+            self.cur.execute('INSERT INTO booking'
+                             '(start_time, end_time ,status, description, user_id, object_id, date)'
+                             'VALUES(?, ?, ?, ?, ?, ?, ?);',
+                             (data[-2], data[-1], 1, data[1], data[0], data[4], data[5]))
             self.base.commit()
             return True
         return False

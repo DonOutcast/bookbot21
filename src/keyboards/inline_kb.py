@@ -1,8 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.callback_data import CallbackData
 
-
-
 city_markup = InlineKeyboardMarkup(row_width=1)
 users_markup = InlineKeyboardMarkup(row_width=1)
 objects_markup = InlineKeyboardMarkup(row_width=1)
@@ -25,8 +23,8 @@ board_games_button = InlineKeyboardButton(text="Настольные игры �
 conference_room_button = InlineKeyboardButton(text="Переговорные 💼🕰", callback_data='object_Переговорные')
 sports_equipment_button = InlineKeyboardButton(text="Спортивный инвентарь 🏀🏓🎯", callback_data='object_Спортивный инвентарь')
 kitchen_room_button = InlineKeyboardButton(text="Кухня 🍽", callback_data="object_Кухня")
-
-objects_markup.add(board_games_button).add(conference_room_button).add(sports_equipment_button).add(kitchen_room_button)
+books_button = InlineKeyboardButton(text="Книги 📚", callback_data="object_Книги")
+objects_markup.add(board_games_button).add(conference_room_button).add(sports_equipment_button).add(kitchen_room_button).add(books_button)
 
 filter_drop_booking = CallbackData('drop', 'action', 'booking_id')
 

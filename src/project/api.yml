@@ -1,0 +1,16 @@
+Rest Api используя методы
+GET
+POST
+PUT
+DELETE
+
+Еще нужна авторизация
+OAUTH.2.0
+(либо альтернатива)
+
+sclite3.connect
+conn.cursor
+message.replay
+commit
+execute
+

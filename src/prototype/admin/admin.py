@@ -1,8 +1,8 @@
-from prototype.kernel.create_bot import bot
 from aiogram import types
 from aiogram.types import ContentType
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
+from prototype.kernel.create_bot import bot
 from prototype.dal.databases.init_database import user_db
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from prototype.basicui.keyboards.inline_kb import city_markup, objects_markup
@@ -40,10 +40,14 @@ class Admin:
 
     @staticmethod
     async def adm_answer_1(message: types.Message, state: FSMContext):
-        async with state.proxy() as data:
-            data['name_for_object'] = message.text.capitalize()
-            await AdmRoot.next()
-            await message.answer("Введите тип объекта!", reply_markup=objects_markup)
+        if len(message.text) > 20:
+            await message.answer("Слишком длинное название\nПовторите попытку")
+            await AdmRoot.name_for_object.set()
+        else:
+            async with state.proxy() as data:
+                data['name_for_object'] = message.text.capitalize()
+                await AdmRoot.next()
+                await message.answer("Введите тип объекта!", reply_markup=objects_markup)
 
     @staticmethod
     async def check_text_name_for_object(message: types.Message):

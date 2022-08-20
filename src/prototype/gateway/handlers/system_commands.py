@@ -1,3 +1,4 @@
+import os
 from prototype.kernel.create_bot import bot
 from aiogram.types import ContentType
 from aiogram import types
@@ -9,7 +10,6 @@ from prototype.basicui.keyboards.inline_kb import city_markup, users_markup
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from prototype.basicui.keyboards.system_kb import keyboards_menu, back_menu_keyboard
 from prototype.kernel.config import ADM_PASSWORD, STUDENT_PASSWORD, INTENSIVIST_PASSWORD
-
 
 count = 0
 
@@ -44,7 +44,8 @@ class BaseCommands:
             async with state.proxy() as data:
                 data['user_id'] = message.from_user.id
             await Registration.next()
-            await bot.send_message(message.from_user.id, "Введите логин для авторизации!", reply_markup=back_menu_keyboard)
+            await bot.send_message(message.from_user.id, "Введите логин для авторизации!",
+                                   reply_markup=back_menu_keyboard)
         else:
             await message.answer("Вы уже зарегистрированы!")
 
@@ -161,11 +162,11 @@ class BaseCommands:
 
     @staticmethod
     async def cmd_start(message: types.Message):
-        # photo = a('/Users/lymondgl/PycharmProjects/bookbot21/photo/title.png', 'rb')
-        # path = abspath('../photo/title.png')
-        # photo = open(abspath('../photo/title.png'), 'rb')
-        # await bot.send_photo(message.from_user.id,
-        #                        photo=photo)
+
+        path = os.path.abspath('photo/title.jpeg')
+        with open(path, 'rb') as photo:
+            await bot.send_photo(message.from_user.id,
+                                 photo=photo)
         await bot.send_message(message.from_user.id, "Добро пожаловать!\nЗдесь вы можете оформить бронь",
                                reply_markup=keyboards_menu)
         await message.delete()
@@ -191,7 +192,7 @@ class BaseCommands:
         if not check:
             await message.answer("Пройдите регистрацию для получения информации")
             await bot.send_sticker(message.from_user.id,
-                               sticker="CAACAgIAAxkBAAENnVli__hWmaC7OjLLpkNXNxRxTOdcnwACnwcAAmMr4gnSznx_gKZbQSkE")
+                                   sticker="CAACAgIAAxkBAAENnVli__hWmaC7OjLLpkNXNxRxTOdcnwACnwcAAmMr4gnSznx_gKZbQSkE")
         else:
             ret = await user_db.sql_user_info(message.from_user.id)
             login, role, campus = ret[0]
@@ -219,41 +220,52 @@ class BaseCommands:
             "СПОРТИВНЫЙ ИНВЕНТАРЬ"
         )
 
-    # @staticmethod
-    # async def where_is_webb(message: types.Message):
-    #     await message.delete()
-    #     check_web = message.web_app_data.data
-    #     if check_web == '1':
-    #         await message.answer("Переговорные могут бронировать абсолютно все зарегестрированные пользователи.\nДля брони перейдите в раздель бронирования")
-    #         await bot.send_sticker(message.from_user.id,
-    #                                sticker="CAACAgIAAxkBAAENndVjAAEd9BY2V5NQn3nZISwI4kaizMwAAgQJAAJjK-IJ5dZK0lV5eW8pBA")
-    #     elif check_web == '2':
-    #         await message.answer("Настольные игру могут бронировавть только студенты и сотрудники адм, так что дружок учи указатели.\nДля брони перейдите в раздель бронирования")
-    #         await bot.send_sticker(message.from_user.id,
-    #                                sticker="CAACAgIAAxkBAAENndNjAAEd0U3Ew_DF5llFH3LC-fljfk4AAhYJAAJjK-IJdFfp1W0uoCkpBA")
-    #     elif check_web == '3':
-    #         await message.answer("Книжки могут читать только студенты и сотрудники адм.\nДля брони перейдите в раздель бронирования")
-    #         await bot.send_sticker(message.from_user.id,
-    #                                sticker="CAACAgIAAxkBAAENndFjAAEdp-xGZdv6bzIH9rEMGPOECbUAAggJAAJjK-IJfU4QLscFhMEpBA")
-    #     elif check_web == '4':
-    #         await message.answer("Спортом могут заниматься  только студенты и сотрудники адм.\nДля брони перейдите в раздель бронирования")
-    #         await bot.send_sticker(message.from_user.id,
-    #                                sticker="CAACAgIAAxkBAAENnc9jAAEc9QgKnCmr4WDklv_y2B81CBwAAooGAALSWogBvRxYp7K-XakpBA")
+    @staticmethod
+    async def where_is_webb(message: types.Message):
+        await message.delete()
+        check_web = message.web_app_data.data
+        if check_web == '1':
+            await message.answer(
+                "Переговорные могут бронировать абсолютно все зарегестрированные пользователи.\nДля брони перейдите в раздель бронирования")
+            await bot.send_sticker(message.from_user.id,
+                                   sticker="CAACAgIAAxkBAAENndVjAAEd9BY2V5NQn3nZISwI4kaizMwAAgQJAAJjK-IJ5dZK0lV5eW8pBA")
+        elif check_web == '2':
+            await message.answer(
+                "Настольные игру могут бронировавть только студенты и сотрудники адм, так что дружок учи указатели.\nДля брони перейдите в раздель бронирования")
+            await bot.send_sticker(message.from_user.id,
+                                   sticker="CAACAgIAAxkBAAENndNjAAEd0U3Ew_DF5llFH3LC-fljfk4AAhYJAAJjK-IJdFfp1W0uoCkpBA")
+        elif check_web == '3':
+            await message.answer(
+                "Книжки могут читать только студенты и сотрудники адм.\nДля брони перейдите в раздель бронирования")
+            await bot.send_sticker(message.from_user.id,
+                                   sticker="CAACAgIAAxkBAAENndFjAAEdp-xGZdv6bzIH9rEMGPOECbUAAggJAAJjK-IJfU4QLscFhMEpBA")
+        elif check_web == '4':
+            await message.answer(
+                "Спортом могут заниматься  только студенты и сотрудники адм.\nДля брони перейдите в раздель бронирования")
+            await bot.send_sticker(message.from_user.id,
+                                   sticker="CAACAgIAAxkBAAENnc9jAAEc9QgKnCmr4WDklv_y2B81CBwAAooGAALSWogBvRxYp7K-XakpBA")
 
     def register_handlers_system(self):
         self.dp.register_message_handler(self.cmd_start, commands=["start"])
-        self.dp.register_message_handler(self.cmd_cancel_registration, Text(equals="Вернуться в главное меню 📜"), state="*")
+        self.dp.register_message_handler(self.cmd_cancel_registration, Text(equals="Вернуться в главное меню 📜"),
+                                         state="*")
         self.dp.register_message_handler(self.cmd_reg, lambda message: "Регистрация 🔐" in message.text, state=None)
         self.dp.register_message_handler(self.user_answer_1, state=Registration.user_name)
-        self.dp.register_message_handler(self.check_choice_login, state=Registration.user_name, content_types=[ContentType.ANY])
-        self.dp.register_callback_query_handler(self.user_answer_2, Text(startswith="user_"), state=Registration.user_role)
-        self.dp.register_message_handler(self.check_choice_role, state=Registration.user_role, content_types=[ContentType.ANY])
-        self.dp.register_message_handler(self.check_password, state=Registration.check_password, content_types=[ContentType.ANY])
-        self.dp.register_callback_query_handler(self.user_answer_3, Text(startswith="city_"), state=Registration.campus_name)
-        self.dp.register_message_handler(self.check_choice_city, state=Registration.campus_name, content_types=[ContentType.ANY])
+        self.dp.register_message_handler(self.check_choice_login, state=Registration.user_name,
+                                         content_types=[ContentType.ANY])
+        self.dp.register_callback_query_handler(self.user_answer_2, Text(startswith="user_"),
+                                                state=Registration.user_role)
+        self.dp.register_message_handler(self.check_choice_role, state=Registration.user_role,
+                                         content_types=[ContentType.ANY])
+        self.dp.register_message_handler(self.check_password, state=Registration.check_password,
+                                         content_types=[ContentType.ANY])
+        self.dp.register_callback_query_handler(self.user_answer_3, Text(startswith="city_"),
+                                                state=Registration.campus_name)
+        self.dp.register_message_handler(self.check_choice_city, state=Registration.campus_name,
+                                         content_types=[ContentType.ANY])
         self.dp.register_message_handler(self.cmd_show, commands=["show"], content_types=[ContentType.ANY])
         self.dp.register_message_handler(self.cmd_my, lambda message: "Мои брони 📝" in message.text)
         self.dp.register_message_handler(self.cmd_my_self, lambda message: "О себе 🆘" in message.text)
         self.dp.register_message_handler(self.cmd_information, lambda message: "Информация ⚠" in message.text)
         self.dp.register_callback_query_handler(self.delete_booking, filter_drop_booking.filter(action="bye_booking"))
-        # self.dp.register_message_handler(self.where_is_webb, content_types='web_app_data')
+        self.dp.register_message_handler(self.where_is_webb, content_types='web_app_data')

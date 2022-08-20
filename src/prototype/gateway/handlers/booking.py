@@ -1,8 +1,8 @@
 from aiogram import types
+from prototype.kernel.create_bot import bot
 from aiogram.types import ContentType
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
-from prototype.kernel.create_bot import bot
 from prototype.dal.databases.init_database import user_db
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from prototype.basicui.keyboards.system_kb import back_menu_keyboard, keyboards_menu
@@ -26,29 +26,10 @@ class Booking:
         self.dp = dp
 
     @staticmethod
-    async def where_is_webb(message: types.Message, state: FSMContext):
-        await message.delete()
-        check_web = message.web_app_data.data
-        await Student.name_of_object.set()
-        async with state.proxy() as data:
-            data['type_of_object'] = message.web_app_data.data
-        rule = await user_db.sql_check_rule(message.from_user.id)
-        if rule is not None:
-            await Student.user_id.set()
-            async with state.proxy() as data:
-                data['user_id'] = message.from_user.id
-            await Student.next()
-            await message.answer("Введите описание мероприятия", reply_markup=back_menu_keyboard)
-        else:
-            await message.answer("Зарегестрируйся для бронирования объектов")
-
-
-
-    @staticmethod
     async def cmd_booking(message: types.Message, state: FSMContext):
         rule = await user_db.sql_check_rule(message.from_user.id)
         if rule is not None:
-            await Student.user_id.set()
+            await Student.first()
             async with state.proxy() as data:
                 data['user_id'] = message.from_user.id
             await Student.next()
@@ -82,17 +63,12 @@ class Booking:
 
     @staticmethod
     async def log_user_answer_2(callback: types.CallbackQuery, callback_data: dict, state: FSMContext):
-        data = await state.get_data()
-        print(data.get('name_of_object'))
-        if data.get('name_of_object') is None:
-            await callback.answer()
-            await callback.message.delete()
-            await callback.message.answer('Выберите объект:',
-                                          reply_markup=await inline_object_list(user_db, callback_data['id']))
-            async with state.proxy() as data:
-                data['type_of_object'] = callback_data['id']
-                print(">>>>>>>>", callback_data['id'], "<<<<<<")
-                print(data['type_of_object'])
+        await callback.answer()
+        await callback.message.delete()
+        await callback.message.answer('Выберите объект:',
+                                      reply_markup=await inline_object_list(user_db, callback_data['id']))
+        async with state.proxy() as data:
+            data['type_of_object'] = callback_data['id']
         await Student.next()
         await callback.message.answer("Выберите название объекта")
 
@@ -180,7 +156,6 @@ class Booking:
         await callback_query.message.delete()
 
     def register_handlers_student(self):
-        self.dp.register_message_handler(self.where_is_webb, content_types='web_app_data')
         self.dp.register_message_handler(self.cmd_booking, lambda message: 'Бронирование ✅' in message.text, state=None)
 
         self.dp.register_message_handler(self.log_user_answer_1, state=Student.description,

@@ -20,7 +20,6 @@ class Student(StatesGroup):
     user_date = State()
 
 
-
 class Booking:
 
     def __init__(self, dp):
@@ -30,9 +29,22 @@ class Booking:
     async def where_is_webb(message: types.Message, state: FSMContext):
         await message.delete()
         check_web = message.web_app_data.data
-        async with state.proxy() as data:
-            data['type_of_object'] = check_web
-        await Booking.cmd_booking(message=message, state=state)
+        rule = await user_db.sql_check_rule(message.from_user.id)
+        if rule[0] == 'intensivist' and check_web != 'Переговорные':
+            await message.answer(
+                "Переговорные могут бронировать абсолютно все зарегестрированные пользователи, обратитесь к Адм для более поддробной информации")
+            await bot.send_sticker(message.from_user.id,
+                                   sticker="CAACAgIAAxkBAAENoSNjAhELud-r6x09cJy3tDtLOHpsTQACFgkAAmMr4gl0V-nVbS6gKSkE")
+        elif rule[0] != 'adm' and check_web == 'Кухня':
+            await bot.send_sticker(message.from_user.id,
+                                   sticker="CAACAgIAAxkBAAENoSFjAhCS3nF4bBzGowf4QOW-NlBnDwACBwkAAmMr4gm4fe-IbYPq_ikE")
+        elif rule[0] != 'adm' and check_web == 'Кластер':
+            await bot.send_sticker(message.from_user.id,
+                                   sticker="CAACAgIAAxkBAAENoR9jAhCFgEFfU179_uRqbvAxJ-kGMAACFAkAAmMr4gkYTOPUAyUdRSkE")
+        else:
+            async with state.proxy() as data:
+                data['type_of_object'] = check_web
+            await Booking.cmd_booking(message=message, state=state)
 
     @staticmethod
     async def cmd_booking(message: types.Message, state: FSMContext):
@@ -43,6 +55,8 @@ class Booking:
                 data['user_id'] = message.from_user.id
             await Student.next()
             await message.answer("Введите описание мероприятия", reply_markup=back_menu_keyboard)
+            await bot.send_sticker(message.from_user.id,
+                                   sticker="CAACAgEAAxkBAAENoVljAh8xTOx1Nmxyk4ruq8V7cITCYQAC7AcAAuN4BAAB6DEEbU_xFOwpBA")
         else:
             await message.answer("Зарегестрируйся для бронирования объектов")
 
@@ -93,7 +107,7 @@ class Booking:
     @staticmethod
     async def check_choice_name(message: types.Message):
         await message.delete()
-        await message.answer("Выберите нужный вам тип по кнопкам!!!!!")
+        await message.answer("Выберите нужный вам тип по кнопкам!!!!!", reply_markup=back_menu_keyboard)
 
     @staticmethod
     async def log_user_answer_3(callback: types.CallbackQuery, callback_data: dict, state: FSMContext):
@@ -123,7 +137,7 @@ class Booking:
     @staticmethod
     async def check_choice_date(message: types.Message):
         await message.delete()
-        await message.answer("Выберите нужную вам дату(время) из календаря")
+        await message.answer("Выберите нужную вам дату(время) из календаря", reply_markup=back_menu_keyboard)
 
     @staticmethod
     async def enter_test_2(callback_query: types.CallbackQuery, callback_data: dict, state: FSMContext):
@@ -174,6 +188,7 @@ class Booking:
         await callback_query.message.delete()
 
     def register_handlers_student(self):
+        # self.dp.register_message_handler(self.chek_web_apps)
         self.dp.register_message_handler(self.where_is_webb, content_types='web_app_data')
         self.dp.register_message_handler(self.cmd_booking, lambda message: 'Бронирование ✅' in message.text, state=None)
 

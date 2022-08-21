@@ -12,7 +12,7 @@ def check_rule(rule, list_types):
                 list_types.remove(price)
     elif rule[0] == 'intensivist':
         for price in list_types:
-            if price[0] == 'игра':
+            if price[0] == 'Переговорные':
                 list_types = price,
     return list_types
 
@@ -21,7 +21,6 @@ async def inline_type_list(user_db, id):
     rule = await user_db.sql_check_rule(id)
     list_types = await user_db.sql_object_type(id)
     ret = len(list_types) != 0
-    print("inline_type_list", list_types)
     list_types = check_rule(rule, list_types)
     row_button = []
     for type_name in list_types:
@@ -33,9 +32,7 @@ async def inline_type_list(user_db, id):
 
 
 async def inline_object_list(user_db, type_name):
-    print(type_name)
     list_object = await user_db.sql_list_object(type_name)
-    print("inline_object_list", list_object)
     row_button = []
     for object_id, object_name in list_object:
         line = InlineKeyboardButton(text=object_name,

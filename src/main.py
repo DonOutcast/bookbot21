@@ -5,7 +5,7 @@ from prototype.admin import admin
 
 
 async def on_starttup(_):
-    print("Бот запущен")
+    print("Бот запущен!")
 
 
 start_system = system_commands.BaseCommands(dp)

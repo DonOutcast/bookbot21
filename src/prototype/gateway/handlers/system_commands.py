@@ -44,6 +44,8 @@ class BaseCommands:
             async with state.proxy() as data:
                 data['user_id'] = message.from_user.id
             await Registration.next()
+            await bot.send_sticker(message.from_user.id,
+                                   sticker="CAACAgEAAxkBAAENoVljAh8xTOx1Nmxyk4ruq8V7cITCYQAC7AcAAuN4BAAB6DEEbU_xFOwpBA")
             await bot.send_message(message.from_user.id, "Введите логин для авторизации!",
                                    reply_markup=back_menu_keyboard)
         else:
@@ -220,30 +222,7 @@ class BaseCommands:
             "СПОРТИВНЫЙ ИНВЕНТАРЬ"
         )
 
-    # @staticmethod
-    # async def where_is_webb(message: types.Message):
-    #     await message.delete()
-    #     check_web = message.web_app_data.data
-    #     if check_web == '1':
-    #         await message.answer(
-    #             "Переговорные могут бронировать абсолютно все зарегестрированные пользователи.\nДля брони перейдите в раздель бронирования")
-    #         await bot.send_sticker(message.from_user.id,
-    #                                sticker="CAACAgIAAxkBAAENndVjAAEd9BY2V5NQn3nZISwI4kaizMwAAgQJAAJjK-IJ5dZK0lV5eW8pBA")
-    #     elif check_web == '2':
-    #         await message.answer(
-    #             "Настольные игру могут бронировавть только студенты и сотрудники адм, так что дружок учи указатели.\nДля брони перейдите в раздель бронирования")
-    #         await bot.send_sticker(message.from_user.id,
-    #                                sticker="CAACAgIAAxkBAAENndNjAAEd0U3Ew_DF5llFH3LC-fljfk4AAhYJAAJjK-IJdFfp1W0uoCkpBA")
-    #     elif check_web == '3':
-    #         await message.answer(
-    #             "Книжки могут читать только студенты и сотрудники адм.\nДля брони перейдите в раздель бронирования")
-    #         await bot.send_sticker(message.from_user.id,
-    #                                sticker="CAACAgIAAxkBAAENndFjAAEdp-xGZdv6bzIH9rEMGPOECbUAAggJAAJjK-IJfU4QLscFhMEpBA")
-    #     elif check_web == '4':
-    #         await message.answer(
-    #             "Спортом могут заниматься  только студенты и сотрудники адм.\nДля брони перейдите в раздель бронирования")
-    #         await bot.send_sticker(message.from_user.id,
-    #                                sticker="CAACAgIAAxkBAAENnc9jAAEc9QgKnCmr4WDklv_y2B81CBwAAooGAALSWogBvRxYp7K-XakpBA")
+
 
     def register_handlers_system(self):
         self.dp.register_message_handler(self.cmd_start, commands=["start"])
@@ -268,4 +247,4 @@ class BaseCommands:
         self.dp.register_message_handler(self.cmd_my_self, lambda message: "О себе 🆘" in message.text)
         self.dp.register_message_handler(self.cmd_information, lambda message: "Информация ⚠" in message.text)
         self.dp.register_callback_query_handler(self.delete_booking, filter_drop_booking.filter(action="bye_booking"))
-        # self.dp.register_message_handler(self.where_is_webb, content_types='web_app_data')
+

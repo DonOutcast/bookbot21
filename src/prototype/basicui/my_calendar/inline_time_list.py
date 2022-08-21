@@ -64,7 +64,6 @@ async def get_time(date, object_id, start_time=None):
             line.append(InlineKeyboardButton(text='.',
                                              callback_data='.'))
         else:
-            print("IN inline", object_id)
             line.append(InlineKeyboardButton(text=str_time,
                                              callback_data=filter_list_time.new(
                                                  type=('first' if start_time is None else 'last'),

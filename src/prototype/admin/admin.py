@@ -32,6 +32,8 @@ class Admin:
                                    sticker="CAACAgIAAxkBAAENm3Ni_0mPv0Bu4O7R2V62k81LaXzxNAACUAADQbVWDEsUyxvLOcdYKQQ")
         elif 'adm' in rule:
             await AdmRoot.first()
+            await bot.send_sticker(message.from_user.id,
+                                   sticker="CAACAgEAAxkBAAENoVljAh8xTOx1Nmxyk4ruq8V7cITCYQAC7AcAAuN4BAAB6DEEbU_xFOwpBA")
             await message.answer("Введите название объекта", reply_markup=back_menu_keyboard)
         else:
             await message.answer("Недостаточно прав! Обратитесь к ADM!")
@@ -41,10 +43,12 @@ class Admin:
     @staticmethod
     async def adm_answer_1(message: types.Message, state: FSMContext):
         if len(message.text) > 20:
-            await message.answer("Слишком длинное название\nПовторите попытку")
+            await message.answer("Слишком длинное название\nНазвание не должно превышать двадцать символов")
             await AdmRoot.name_for_object.set()
         else:
             async with state.proxy() as data:
+                await bot.send_sticker(message.from_user.id,
+                                       sticker="CAACAgEAAxkBAAENoVljAh8xTOx1Nmxyk4ruq8V7cITCYQAC7AcAAuN4BAAB6DEEbU_xFOwpBA")
                 data['name_for_object'] = message.text.capitalize()
                 await AdmRoot.next()
                 await message.answer("Введите тип объекта!", reply_markup=objects_markup)
@@ -75,6 +79,8 @@ class Admin:
 
     @staticmethod
     async def adm_answer_3(message: types.Message, state: FSMContext):
+        await bot.send_sticker(message.from_user.id,
+                               sticker="CAACAgEAAxkBAAENoVljAh8xTOx1Nmxyk4ruq8V7cITCYQAC7AcAAuN4BAAB6DEEbU_xFOwpBA")
         async with state.proxy() as data:
             data['description'] = message.text
             await AdmRoot.next()

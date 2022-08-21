@@ -33,6 +33,7 @@ async def inline_type_list(user_db, id):
 
 
 async def inline_object_list(user_db, type_name):
+    print(type_name)
     list_object = await user_db.sql_list_object(type_name)
     print("inline_object_list", list_object)
     row_button = []

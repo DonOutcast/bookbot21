@@ -23,6 +23,7 @@ board_games_button = InlineKeyboardButton(text="Настольные игры �
 conference_room_button = InlineKeyboardButton(text="Переговорные и конференц-залы 💼🕰", callback_data='object_Переговорные')
 sports_equipment_button = InlineKeyboardButton(text="Спортивный инвентарь 🏀🏓🎯", callback_data='object_Спортивный инвентарь')
 kitchen_room_button = InlineKeyboardButton(text="Кухни 🍽", callback_data="object_Кухня")
+claster_button = InlineKeyboardButton(text="Кластер ", callback_data="object_Kластер")
 books_button = InlineKeyboardButton(text="Книги 📚", callback_data="object_Книги")
 objects_markup.add(board_games_button).add(conference_room_button).add(sports_equipment_button).add(kitchen_room_button).add(books_button)
 
@@ -36,44 +37,6 @@ def create_button(booking_id: int) -> InlineKeyboardMarkup:
     cancel_markup.add(cancle_booking)
     return cancel_markup
 
-#
-# kzn_inline_button = InlineKeyboardButton(text=" 🏯", callback_data='city_kzn')
-# msk_inline_button = InlineKeyboardButton(text="Москва 🏭", callback_data='city_msk')
-# nsk_inline_button = InlineKeyboardButton(text="Новосибирск 🏰", callback_data='city_nsk')
-
-# filter_list = CallbackData('type', 'action', 'id')
-
-
-# async def type_list():
-#     res = await user_db.sql_object_name()
-#     return res
-#
-#
-# async def object_list(type_name):
-#     lis_of_type_name = await user_db.sql_list_object(type_name)
-#     return lis_of_type_name
-
-
-# def inline_type_list():
-#     list_types = type_list()
-#     row_button = []
-#     for type_name in list_types:
-#         line = InlineKeyboardButton(text=type_name,
-#                                     callback_data=filter_list.new(action='get_type_list',
-#                                                                   id=type_name))
-#         row_button.append([line, ])
-#     return InlineKeyboardMarkup(inline_keyboard=row_button)
-#
-#
-# def inline_object_list(type_name):
-#     list_object = object_list(type_name)
-#     row_button = []
-#     for object_id, object_name in list_object:
-#         line = InlineKeyboardButton(text=object_name,
-#                                     callback_data=filter_list.new(action='get_object_list',
-#                                                                   id=object_id))
-#         row_button.append([line, ])
-#     return InlineKeyboardMarkup(inline_keyboard=row_button)
 
 
 

@@ -147,13 +147,18 @@ class DatabaseBot:
 
     async def sql_get_id(self, state):
         async with state.proxy() as data:
-            data = tuple(data.values())
+            # # data = tuple(data.values())
+            # print(data, "@@@@@@@@@@@@@@", data.keys())
+            object_type = data['type_of_object']
+            object_name = data['name_of_object']
+            #
+            # print(object_type, object_name, "22@@@@@22222")
             ret = self.cur.execute('''  SELECT objects.id
                                         FROM objects
                                         JOIN users
                                         On objects.campus=users.campus
                                         WHERE objects.type=? and objects.name=?
-                                        LIMIT 1''', (data[2], data[3])
+                                        LIMIT 1''', (object_type, object_name)
                                    ).fetchone()
         return ret
 

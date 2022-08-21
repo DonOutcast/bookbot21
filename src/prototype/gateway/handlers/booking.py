@@ -20,10 +20,19 @@ class Student(StatesGroup):
     user_date = State()
 
 
+
 class Booking:
 
     def __init__(self, dp):
         self.dp = dp
+
+    @staticmethod
+    async def where_is_webb(message: types.Message, state: FSMContext):
+        await message.delete()
+        check_web = message.web_app_data.data
+        async with state.proxy() as data:
+            data['type_of_object'] = check_web
+        await Booking.cmd_booking(message=message, state=state)
 
     @staticmethod
     async def cmd_booking(message: types.Message, state: FSMContext):
@@ -49,24 +58,33 @@ class Booking:
         else:
             async with state.proxy() as data:
                 data['description'] = message.text
-            await Student.next()
-            new_keyboard, ret = await inline_type_list(user_db, message.from_user.id)
-            if ret:
-                await message.answer("Выберите тип объекта", reply_markup=new_keyboard)
-            else:
-                await message.answer("Не найдено доступных для бронирования объектов", reply_markup=keyboards_menu)
+
+                new_keyboard, ret = await inline_type_list(user_db, message.from_user.id)
+                if ret:
+                    if 'type_of_object' in data.keys():
+                        await message.answer('Выберите объект:',
+                                             reply_markup=await inline_object_list(user_db, data["type_of_object"]))
+                        await Student.name_of_object.set()
+                    else:
+                        await message.answer("Выберите тип объекта", reply_markup=new_keyboard)
+                        await Student.next()
+                else:
+                    await message.answer("Не найдено доступных для бронирования объектов", reply_markup=keyboards_menu)
+
+
+
 
     @staticmethod
     async def check_choice_type(message: types.Message):
         await message.delete()
-        await message.answer("Выберите нужный вам тип по кнопкам!!!!!")
+        await message.answer("Выберите нужный вам тип по кнопкам!!!!!", reply_markup=back_menu_keyboard)
 
     @staticmethod
     async def log_user_answer_2(callback: types.CallbackQuery, callback_data: dict, state: FSMContext):
         await callback.answer()
         await callback.message.delete()
         await callback.message.answer('Выберите объект:',
-                                      reply_markup=await inline_object_list(user_db, callback_data['id']))
+                               reply_markup=await inline_object_list(user_db, callback_data["id"]))
         async with state.proxy() as data:
             data['type_of_object'] = callback_data['id']
         await Student.next()
@@ -139,7 +157,7 @@ class Booking:
         start_time = callback_data['first_time']
         end_time = callback_data['last_time']
         async with state.proxy() as data:
-            data = tuple(data.values())
+            data = data['user_id'], data['description'], data['type_of_object'], data['name_of_object'], data['object_id']
         data = (*data, date, start_time, end_time)
         query = await user_db.sql_booking(data)
         await state.finish()
@@ -156,6 +174,7 @@ class Booking:
         await callback_query.message.delete()
 
     def register_handlers_student(self):
+        self.dp.register_message_handler(self.where_is_webb, content_types='web_app_data')
         self.dp.register_message_handler(self.cmd_booking, lambda message: 'Бронирование ✅' in message.text, state=None)
 
         self.dp.register_message_handler(self.log_user_answer_1, state=Student.description,

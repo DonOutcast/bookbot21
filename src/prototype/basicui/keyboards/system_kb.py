@@ -13,7 +13,8 @@ back_to_menu_button = KeyboardButton("Вернуться в главное ме�
 back_menu_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
 back_menu_keyboard.add(back_to_menu_button)
 
-web_app = WebAppInfo(url="https://donoutcast.github.io/")
+# web_app = WebAppInfo(url="https://donoutcast.github.io/")
+web_app = WebAppInfo(url="https://donoutcast.github.io/Donbook.github.io/")
 site_button = KeyboardButton(text="Site", web_app=web_app)
 keyboards_menu.row(registration_button, admin_button).row(booking_button, my_bookings_button).row(help_button, information_button).add(site_button)
 

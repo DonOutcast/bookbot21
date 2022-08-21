@@ -30,22 +30,27 @@ class Booking:
         await message.delete()
         check_web = message.web_app_data.data
         rule = await user_db.sql_check_rule(message.from_user.id)
-        if rule[0] == 'intensivist' and check_web != 'Переговорные':
-            await message.answer(
-                "Переговорные могут бронировать абсолютно все зарегестрированные пользователи, обратитесь к Адм для более поддробной информации")
-            await bot.send_sticker(message.from_user.id,
-                                   sticker="CAACAgIAAxkBAAENoSNjAhELud-r6x09cJy3tDtLOHpsTQACFgkAAmMr4gl0V-nVbS6gKSkE")
-        elif rule[0] != 'adm' and check_web == 'Кухня':
-            await bot.send_sticker(message.from_user.id,
-                                   sticker="CAACAgIAAxkBAAENoSFjAhCS3nF4bBzGowf4QOW-NlBnDwACBwkAAmMr4gm4fe-IbYPq_ikE")
-        elif rule[0] != 'adm' and check_web == 'Кластер':
-            await bot.send_sticker(message.from_user.id,
-                                   sticker="CAACAgIAAxkBAAENoR9jAhCFgEFfU179_uRqbvAxJ-kGMAACFAkAAmMr4gkYTOPUAyUdRSkE")
+        if rule is not None:
+            if rule[0] == 'intensivist' and check_web != 'Переговорные':
+                await message.answer(
+                    "Переговорные могут бронировать абсолютно все зарегестрированные пользователи, обратитесь к Адм для более поддробной информации")
+                await bot.send_sticker(message.from_user.id,
+                                       sticker="CAACAgIAAxkBAAENoSNjAhELud-r6x09cJy3tDtLOHpsTQACFgkAAmMr4gl0V-nVbS6gKSkE")
+            elif rule[0] != 'adm' and check_web == 'Кухня':
+                await bot.send_sticker(message.from_user.id,
+                                       sticker="CAACAgIAAxkBAAENoSFjAhCS3nF4bBzGowf4QOW-NlBnDwACBwkAAmMr4gm4fe-IbYPq_ikE")
+            elif rule[0] != 'adm' and check_web == 'Кластер':
+                await bot.send_sticker(message.from_user.id,
+                                       sticker="CAACAgIAAxkBAAENoR9jAhCFgEFfU179_uRqbvAxJ-kGMAACFAkAAmMr4gkYTOPUAyUdRSkE")
+            else:
+                async with state.proxy() as data:
+                    data['type_of_object'] = check_web
+                await Booking.cmd_booking(message=message, state=state)
         else:
-            async with state.proxy() as data:
-                data['type_of_object'] = check_web
-            await Booking.cmd_booking(message=message, state=state)
-
+            await message.answer(
+                "Для того чтобы забронировать чтото из этого списка, пройдите регестрацию")
+            await bot.send_sticker(message.from_user.id,
+                                   sticker="CAACAgEAAxkBAAENobdjAkWbhOAfHoHPXsxLBB90mrOGFQACMQIAAsOjKEdLBVdiYsQQXykE")
     @staticmethod
     async def cmd_booking(message: types.Message, state: FSMContext):
         rule = await user_db.sql_check_rule(message.from_user.id)

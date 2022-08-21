@@ -1,13 +1,13 @@
 import os
-from prototype.kernel.create_bot import bot
-from aiogram.types import ContentType
 from aiogram import types
+from aiogram.types import ContentType
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
+from prototype.kernel.create_bot import bot
 from prototype.dal.databases.init_database import user_db
+from aiogram.dispatcher.filters.state import State, StatesGroup
 from prototype.basicui.keyboards.inline_kb import filter_drop_booking
 from prototype.basicui.keyboards.inline_kb import city_markup, users_markup
-from aiogram.dispatcher.filters.state import State, StatesGroup
 from prototype.basicui.keyboards.system_kb import keyboards_menu, back_menu_keyboard
 from prototype.kernel.config import ADM_PASSWORD, STUDENT_PASSWORD, INTENSIVIST_PASSWORD
 

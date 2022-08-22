@@ -51,6 +51,7 @@ class Booking:
                 "Для того чтобы забронировать чтото из этого списка, пройдите регестрацию")
             await bot.send_sticker(message.from_user.id,
                                    sticker="CAACAgEAAxkBAAENobdjAkWbhOAfHoHPXsxLBB90mrOGFQACMQIAAsOjKEdLBVdiYsQQXykE")
+
     @staticmethod
     async def cmd_booking(message: types.Message, state: FSMContext):
         rule = await user_db.sql_check_rule(message.from_user.id)
@@ -90,9 +91,6 @@ class Booking:
                 else:
                     await message.answer("Не найдено доступных для бронирования объектов", reply_markup=keyboards_menu)
 
-
-
-
     @staticmethod
     async def check_choice_type(message: types.Message):
         await message.delete()
@@ -103,7 +101,7 @@ class Booking:
         await callback.answer()
         await callback.message.delete()
         await callback.message.answer('Выберите объект:',
-                               reply_markup=await inline_object_list(user_db, callback_data["id"]))
+                                      reply_markup=await inline_object_list(user_db, callback_data["id"]))
         async with state.proxy() as data:
             data['type_of_object'] = callback_data['id']
         await Student.next()

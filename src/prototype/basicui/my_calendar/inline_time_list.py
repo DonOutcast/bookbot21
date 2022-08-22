@@ -1,6 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.callback_data import CallbackData
 from prototype.admin.admin import user_db
+from datetime import datetime
 
 filter_list_time = CallbackData('time', 'type', 'date', 'first_time', 'last_time')
 
@@ -15,13 +16,16 @@ async def time_list(date, object_id, first=True):
 
         line_list = []
         for h in range(start_h, finish_h + 1):
+
             if h == start_h:
                 if h == finish_h:
+
                     for m in range(start_m, finish_m + 15, 15):
                         line_list.append(f'{h}.{m:0<2}')
                 else:
                     for m in range(start_m, 60, 15):
                         line_list.append(f'{h}.{m:0<2}')
+
             elif h == finish_h:
                 for m in range(0, finish_m + 15, 15):
                     line_list.append(f'{h}.{m:0<2}')
@@ -45,17 +49,31 @@ async def get_time(date, object_id, start_time=None):
         start_minute += 15
     else:
         t_list = await time_list(date, object_id)
-        start_hour, start_minute = 0, 0
+        now_time = datetime.now()
+
+        start_hour = now_time.hour
+        if now_time.minute in range(0, 15):
+            start_minute = 15
+        elif now_time.minute in range(15, 30):
+            start_minute = 30
+        elif now_time.minute in range(30, 45):
+            start_minute = 45
+        elif now_time.minute in range(45, 60):
+            start_minute = 0
+            start_hour = start_hour + 1
 
     list_time = []
     for hour in range(start_hour, 24):
         for minute in range(start_minute, 60, 15):
             list_time.append(f'{hour}.{minute:0<2}')
         start_minute = 0
+    if start_time is not None:
+        list_time.append("24.00")
 
     line = []
     res_list = []
     flag = False
+    print(list_time)
     for i, str_time in enumerate(list_time):
         if str_time in t_list:
             if start_time is not None:

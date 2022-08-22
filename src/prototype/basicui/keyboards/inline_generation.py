@@ -8,7 +8,7 @@ filter_list = CallbackData('type', 'action', 'id')
 def check_rule(rule, list_types):
     if rule[0] == 'student':
         for price in list_types:
-            if price[0] == 'игра':
+            if price[0] == 'игра' or price[0] == 'Кластер':
                 list_types.remove(price)
     elif rule[0] == 'intensivist':
         for price in list_types:

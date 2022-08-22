@@ -23,9 +23,9 @@ board_games_button = InlineKeyboardButton(text="Настольные игры �
 conference_room_button = InlineKeyboardButton(text="Переговорные и конференц-залы 💼🕰", callback_data='object_Переговорные')
 sports_equipment_button = InlineKeyboardButton(text="Спортивный инвентарь 🏀🏓🎯", callback_data='object_Спортивный инвентарь')
 kitchen_room_button = InlineKeyboardButton(text="Кухни 🍽", callback_data="object_Кухня")
-claster_button = InlineKeyboardButton(text="Кластер ", callback_data="object_Kластер")
+claster_button = InlineKeyboardButton(text="Кластер 🖥", callback_data="object_Кластер")
 books_button = InlineKeyboardButton(text="Книги 📚", callback_data="object_Книги")
-objects_markup.add(board_games_button).add(conference_room_button).add(sports_equipment_button).add(kitchen_room_button).add(books_button)
+objects_markup.add(board_games_button).add(conference_room_button).add(sports_equipment_button).add(kitchen_room_button).add(books_button).add(claster_button)
 
 filter_drop_booking = CallbackData('drop', 'action', 'booking_id')
 

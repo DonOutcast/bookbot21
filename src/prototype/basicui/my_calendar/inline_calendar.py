@@ -56,18 +56,51 @@ async def get_date(date=None) -> InlineKeyboardMarkup:
     first_day = dt.weekday()
     count_days = monthrange(dt.year, dt.month)[1]
     res_list_inline_but = [line_year, line_mounth]
+    dt_now = datetime.now()
 
     line = []
     for num_day in range(7 * 6):
         if num_day < first_day or num_day > count_days + first_day - 1:
             line.append(InlineKeyboardButton(text='_', callback_data='_'))
         else:
+
             day = num_day - first_day + 1
             mount = dt.month
             year = dt.year
-            line.append(InlineKeyboardButton(text=str(day),
-                                             callback_data=filter_list_date.new(type='get_date',
-                                                                                date=f'{day}/{mount}/{year}')))
+
+            if year < dt_now.year:
+                line.append(InlineKeyboardButton(text='_', callback_data='_'))
+            if year > dt_now.year:
+                line.append(InlineKeyboardButton(text=str(day),
+                                                 callback_data=filter_list_date.new(type='get_date',
+                                                                                    date=f'{day}/{mount}/{year}')))
+            else:
+                if mount < dt_now.month:
+                    line.append(InlineKeyboardButton(text='_', callback_data='_'))
+                if mount > dt_now.month:
+                    line.append(InlineKeyboardButton(text=str(day),
+                                                     callback_data=filter_list_date.new(type='get_date',
+                                                                                        date=f'{day}/{mount}/{year}')))
+                else:
+                    if day < dt_now.day:
+                        line.append(InlineKeyboardButton(text='_', callback_data='_'))
+                    else:
+                        line.append(InlineKeyboardButton(text=str(day),
+                                                         callback_data=filter_list_date.new(type='get_date',
+                                                                                            date=f'{day}/{mount}/{year}')))
+
+            # if dt_now.year <= year and dt_now.month <= mount:
+            #     if dt_now.month < mount and dt_now.year >= year:
+            #         line.append(InlineKeyboardButton(text=str(day),
+            #                                          callback_data=filter_list_date.new(type='get_date',
+            #                                                                             date=f'{day}/{mount}/{year}')))
+            #     elif dt_now.day <= day and mount == dt_now.month:
+            #         line.append(InlineKeyboardButton(text=str(day),
+            #                                          callback_data=filter_list_date.new(type='get_date',
+            #                                                                                 date=f'{day}/{mount}/{year}')))
+            #
+            #     else:
+            #         line.append(InlineKeyboardButton(text='_', callback_data='_'))
         if len(line) == 7:
             res_list_inline_but.append(line)
             line = []
